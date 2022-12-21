@@ -40,20 +40,20 @@ import qualified PlutusTx
 import           PlutusTx.Prelude                     as Plutus hiding
                                                                 (Semigroup (..),
                                                                  unless, (.))
-import           Prelude                              (IO, Semigroup (..),
+import           Prelude                              (FilePath, IO,
+                                                       Semigroup (..),
                                                        Show (..), String, print,
                                                        (.))
 
-data PPState = Init | Open | Closed | Canceled deriving (Show, Eq)
-
-PlutusTx.unstableMakeIsData ''PPState
-
-data PropParams = PropParams { ppState     :: PPState
+data PropParams = PropParams { ppIndex     :: Integer
+                             --, ppPrev      :: PlutusV2.TxOutRef
+                             , ppState     :: BuiltinByteString
                              , ppQuestions :: BuiltinByteString
                              , ppAnswers   :: [BuiltinByteString]
                              , ppResults   :: [(Integer, BuiltinByteString)]
-                             } deriving (Show)
+                             } deriving Show
 
+PlutusTx.makeLift ''PropParams
 PlutusTx.unstableMakeIsData ''PropParams
 
 {-# INLINABLE exColateralPolicy #-}
@@ -62,4 +62,50 @@ exColateralPolicy pp ctx = traceIfFalse "Wrong Redeemer!" $ checkRedeemer pp
 
   where
     checkRedeemer :: PropParams -> Bool
-    checkRedeemer (PropParams s _ a r) = s == Init && a == [] && r == []
+    checkRedeemer (PropParams _ s _ a r) = s == "Init" && a == [] && r == []
+
+data Typed
+instance Scripts.ValidatorTypes Typed where
+  type instance RedeemerType Typed = PropParams
+
+policy :: Scripts.MintingPolicy
+policy = PlutusV2.mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| wrap ||])
+  where
+    wrap = Utils.V2.mkUntypedMintingPolicy exColateralPolicy
+
+redeemerTest :: PropParams
+redeemerTest = PropParams { ppIndex = 1,
+                            ppState = "Init",
+                            ppQuestions = "Does it work?",
+                            ppAnswers = [],
+                            ppResults = []
+                          }
+
+printRedeemer :: IO ()
+printRedeemer = print $ "Redeemer: " <> A.encode (scriptDataToJson ScriptDataJsonDetailedSchema $ fromPlutusData $ PlutusV2.toData redeemerTest)
+
+script :: PlutusV2.Script
+script = PlutusV2.unMintingPolicyScript policy
+
+scriptSBS :: SBS.ShortByteString
+scriptSBS = SBS.toShort . LBS.toStrict $ serialise script
+
+serialisedScript :: PlutusScript PlutusScriptV2
+serialisedScript = PlutusScriptSerialised scriptSBS
+
+writeSerialisedScript :: IO ()
+writeSerialisedScript = void $ writeFileTextEnvelope "testnet/nftMint.plutus" Nothing serialisedScript
+
+writeJSON :: PlutusTx.ToData a => FilePath -> a -> IO ()
+writeJSON file = LBS.writeFile file . A.encode . scriptDataToJson ScriptDataJsonDetailedSchema . fromPlutusData . PlutusV2.toData
+
+writeUnit :: IO ()
+writeUnit = writeJSON "testnet/unit.json" ()
+
+writeRedeemer :: IO ()
+writeRedeemer = writeJSON "testnet/goodRedeemer.json"
+
+-- OFF-CHAIN
+
+
