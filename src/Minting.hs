@@ -23,35 +23,49 @@ import           Cardano.Api.Shelley                  (PlutusScript (..),
                                                        fromPlutusData,
                                                        scriptDataToJson)
 import           Codec.Serialise
-
 import           Data.Aeson                           as A
 import           Data.ByteString.Lazy                 as LBS
 import qualified Data.ByteString.Lazy                 as LBS
 import qualified Data.ByteString.Short                as SBS
 import           Data.Functor                         (void)
+import           GHC.Generics                         (Generic)
+
+import           Plutus.Contract
+
+import           Ledger
+import           Ledger.Constraints                   as Constraints
 import qualified Ledger.Typed.Scripts                 as Scripts
 import           Ledger.Value                         as Value
+
 import qualified Plutus.Script.Utils.V2.Scripts       as PSU.V2
 import qualified Plutus.Script.Utils.V2.Typed.Scripts as Utils.V2
-import qualified Plutus.V1.Ledger.Api                 as PlutusV1
 import qualified Plutus.V2.Ledger.Api                 as PlutusV2
 import           Plutus.V2.Ledger.Contexts            (ownCurrencySymbol)
+
+import           Plutus.Trace
+import qualified Plutus.Trace.Emulator                as Emulator
+import qualified Wallet.Emulator.Wallet               as Wallet
+
 import qualified PlutusTx
 import           PlutusTx.Prelude                     as Plutus hiding
                                                                 (Semigroup (..),
                                                                  unless, (.))
+
+import           Control.Monad.Freer.Extras           as Extras
+import           Data.Text                            (Text)
 import           Prelude                              (FilePath, IO,
                                                        Semigroup (..),
                                                        Show (..), String, print,
                                                        (.))
 
-data PropParams = PropParams { ppIndex     :: Integer
+
+data PropParams = PropParams { ppIndex     :: BuiltinByteString
                              --, ppPrev      :: PlutusV2.TxOutRef
                              , ppState     :: BuiltinByteString
                              , ppQuestions :: BuiltinByteString
                              , ppAnswers   :: [BuiltinByteString]
                              , ppResults   :: [(Integer, BuiltinByteString)]
-                             } deriving Show
+                             } deriving (Generic,ToJSON, FromJSON, Show)
 
 PlutusTx.makeLift ''PropParams
 PlutusTx.unstableMakeIsData ''PropParams
@@ -79,13 +93,52 @@ tvalidator = Utils.V2.mkTypedValidator @Typed
 policy :: Utils.V2.MintingPolicy
 policy = Utils.V2.forwardingMintingPolicy tvalidator
 
+policyHash :: PSU.V2.MintingPolicyHash
+policyHash = PSU.V2.mintingPolicyHash policy
+
 curSymbol :: CurrencySymbol
 curSymbol = PSU.V2.scriptCurrencySymbol policy
 
+-- Off-Chain
+
+type MintSchema =
+    Endpoint "mintin" PropParams
+
+prop :: BuiltinByteString
+prop = "proposal"
+
+mintin :: AsContractError e => PropParams -> Contract w s e ()
+mintin (PropParams i s q a r) =  do
+                            let redeemer = PlutusV2.toBuiltinData
+                                         $ PropParams { ppIndex     = i
+                                                      , ppState     = s
+                                                      , ppQuestions = q
+                                                      , ppAnswers   = a
+                                                      , ppResults   = r }
+                                tknName = tokenName $ fromBuiltin $ prop <> i
+                                tx = Constraints.mustMintCurrencyWithRedeemer policyHash (Redeemer redeemer) tknName 1
+                            ledgerTx <- submitTxConstraints tvalidator tx
+                            void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
+
+endpoints :: Contract () MintSchema Text ()
+endpoints = awaitPromise mintin' >> endpoints
+  where
+    mintin' = endpoint @"mintin" mintin
+
+--Emulator
+
+test :: IO ()
+test = runEmulatorTraceIO $ do
+  h1 <- activateContractWallet (Wallet.knownWallet 1) endpoints
+  h2 <- activateContractWallet (Wallet.knownWallet 2) endpoints
+  callEndpoint @"mintin" h1 $ redeemerTest
+  void $ Emulator.waitNSlots 10
+  s <- Emulator.waitNSlots 10
+  Extras.logInfo $ "End of Simulation at slot " ++ show s
 --Write Stuff
 
 redeemerTest :: PropParams
-redeemerTest = PropParams { ppIndex = 1,
+redeemerTest = PropParams { ppIndex = "0001",
                             ppState = "Init",
                             ppQuestions = "Does it work?",
                             ppAnswers = [],
@@ -110,7 +163,7 @@ writeSerialisedScript = void $ writeFileTextEnvelope "testnet/nftMint.plutus" No
 writeJSON :: PlutusTx.ToData a => FilePath -> a -> IO ()
 writeJSON file = LBS.writeFile file . A.encode . scriptDataToJson ScriptDataJsonDetailedSchema . fromPlutusData . PlutusV2.toData
 
-writeUnit :: IO ()
-writeUnit = writeJSON "testnet/unit.json" ()
+writeRedeemer :: IO ()
+writeRedeemer = writeJSON "testnet/redeemer.json" ()
 
 
