@@ -76,7 +76,7 @@ exColateralPolicy _ pp ctx = traceIfFalse "Wrong Redeemer!" $ checkRedeemer pp
 
   where
     checkRedeemer :: PropParams -> Bool
-    checkRedeemer (PropParams _ s _ a r) = s == "Init" && a == [] && r == []
+    checkRedeemer (PropParams _ s _ a r) = s ==  "496e6974" && a == [] && r == []
 
 data Typed
 instance Utils.V2.ValidatorTypes Typed where
