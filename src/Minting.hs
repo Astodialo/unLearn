@@ -57,22 +57,32 @@ PlutusTx.makeLift ''PropParams
 PlutusTx.unstableMakeIsData ''PropParams
 
 {-# INLINABLE exColateralPolicy #-}
-exColateralPolicy :: PropParams -> PlutusV2.ScriptContext -> Bool
-exColateralPolicy pp ctx = traceIfFalse "Wrong Redeemer!" $ checkRedeemer pp
+exColateralPolicy :: () -> PropParams -> PlutusV2.ScriptContext -> Bool
+exColateralPolicy _ pp ctx = traceIfFalse "Wrong Redeemer!" $ checkRedeemer pp
 
   where
     checkRedeemer :: PropParams -> Bool
     checkRedeemer (PropParams _ s _ a r) = s == "Init" && a == [] && r == []
 
 data Typed
-instance Scripts.ValidatorTypes Typed where
+instance Utils.V2.ValidatorTypes Typed where
+  type instance DatumType Typed = ()
   type instance RedeemerType Typed = PropParams
 
-policy :: Scripts.MintingPolicy
-policy = PlutusV2.mkMintingPolicyScript $
+tvalidator :: Utils.V2.TypedValidator Typed
+tvalidator = Utils.V2.mkTypedValidator @Typed
+    $$(PlutusTx.compile [|| exColateralPolicy ||])
     $$(PlutusTx.compile [|| wrap ||])
-  where
-    wrap = Utils.V2.mkUntypedMintingPolicy exColateralPolicy
+      where
+          wrap = Utils.V2.mkUntypedValidator @() @PropParams
+
+policy :: Utils.V2.MintingPolicy
+policy = Utils.V2.forwardingMintingPolicy tvalidator
+
+curSymbol :: CurrencySymbol
+curSymbol = PSU.V2.scriptCurrencySymbol policy
+
+--Write Stuff
 
 redeemerTest :: PropParams
 redeemerTest = PropParams { ppIndex = 1,
@@ -102,10 +112,5 @@ writeJSON file = LBS.writeFile file . A.encode . scriptDataToJson ScriptDataJson
 
 writeUnit :: IO ()
 writeUnit = writeJSON "testnet/unit.json" ()
-
-writeRedeemer :: IO ()
-writeRedeemer = writeJSON "testnet/goodRedeemer.json"
-
--- OFF-CHAIN
 
 
