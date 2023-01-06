@@ -83,20 +83,20 @@ propUpdateVal dp _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign
     txInfo :: Api.TxInfo
     txInfo = Api.scriptContextTxInfo ctx
 
-    txInValues :: [(CurrencySymbol, TokenName, Integer)]
-    txInValues = concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo))
+    txWinValues :: [(CurrencySymbol, TokenName, Integer)]
+    txWinValues = filter (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) (concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo)))
+
+    valEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
+    valEq = \[(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn' <> "_A")
 
     txMint :: [(CurrencySymbol, TokenName, Integer)]
     txMint = flattenValue (Api.txInfoMint txInfo)
-
-    valEq :: (CurrencySymbol, TokenName, Integer) -> (CurrencySymbol, TokenName, Integer) -> Bool
-    valEq = \(cs,tkn, _) (cs', tkn', _) -> cs == cs' && unTokenName tkn == (unTokenName tkn' <> "_A")
 
     checkSign:: Bool
     checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
 
     checkNfts :: Bool
-    checkNfts =  True --flattenValue txMint flattenValue
+    checkNfts =  valEq txWinValues --flattenValue txMint flattenValue
 
 data Typed
 instance TScripts.ValidatorTypes Typed where
