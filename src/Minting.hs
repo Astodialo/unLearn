@@ -53,6 +53,10 @@ import           PlutusTx.Prelude                                      as Plutus
                                                                                   (.))
 
 import           Control.Monad.Freer.Extras                            as Extras
+import           Data.List                                             (concat,
+                                                                        concatMap,
+                                                                        filter,
+                                                                        groupBy)
 import           Data.Text                                             (Text)
 import           Prelude                                               (FilePath,
                                                                         IO,
@@ -83,20 +87,35 @@ propUpdateVal dp _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign
     txInfo :: Api.TxInfo
     txInfo = Api.scriptContextTxInfo ctx
 
-    txWinValues :: [(CurrencySymbol, TokenName, Integer)]
-    txWinValues = filter (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) (concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo)))
+    valEq :: (CurrencySymbol, TokenName, Integer) -> (CurrencySymbol, TokenName, Integer) -> Bool
+    valEq = \(cs,tkn, _) (cs', tkn', _) -> cs == cs' && unTokenName tkn == (unTokenName tkn' <> "_A")
 
-    valEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
-    valEq = \[(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn' <> "_A")
+    listValEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
+    listValEq = \[(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn' <> "_A")
 
     txMint :: [(CurrencySymbol, TokenName, Integer)]
     txMint = flattenValue (Api.txInfoMint txInfo)
 
+    checkLockedRefTkn :: Api.TxOut -> Bool
+    checkLockedRefTkn infout = (Api.ScriptCredential (Api.addressCredential (Api.txOutAddress infout))) == Api.ownHash ctx && (any (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ flattenValue (Api.txOutValue infout))
+
+    lockedRefTkn :: [(CurrencySymbol, TokenName, Integer)]
+    lockedRefTkn = Data.List.concat (flattenValue `map` (Api.txOutValue `map` (Data.List.filter checkLockedRefTkn (Api.txInfoOutputs txInfo))))
+
+    burnedValidationTkn :: [(CurrencySymbol, TokenName, Integer)]
+    burnedValidationTkn = Data.List.filter (\(cs,_,amt) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" && amt == -1) txMint
+
     checkSign:: Bool
     checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
 
+    checkBurnLock :: Bool
+    checkBurnLock = valEq (head lockedRefTkn) (head burnedValidationTkn)
+
+    txWinValues :: [(CurrencySymbol, TokenName, Integer)]
+    txWinValues = Data.List.filter (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ Data.List.concat (Data.List.filter ((/=1) . length) . (groupBy valEq) $ Data.List.concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo)))
+
     checkNfts :: Bool
-    checkNfts =  valEq txWinValues --flattenValue txMint flattenValue
+    checkNfts =  listValEq txWinValues
 
 data Typed
 instance TScripts.ValidatorTypes Typed where
