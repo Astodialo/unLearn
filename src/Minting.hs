@@ -47,9 +47,6 @@ import           PlutusTx.Prelude                                      as Plutus
                                                                                   unless,
                                                                                   (.))
 
-import           Data.List                                             (concat,
-                                                                        filter,
-                                                                        groupBy)
 import           Data.Text                                             (Text)
 import           Prelude                                               (FilePath,
                                                                         IO,
@@ -67,7 +64,7 @@ PlutusTx.makeIsDataIndexed ''DatumMetadata [('DatumMetadata, 0)]
 {-# INLINABLE propUpdateVal #-}
 propUpdateVal :: DatumMetadata -> () -> Api.ScriptContext -> Bool
 propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign
-                       && traceIfFalse "no nft pair" checkNfts
+ --                      && traceIfFalse "no nft pair" checkNfts
                        && traceIfFalse "val nft not burnt or ref nft not locked in scr" checkBurnLock
 
   where
@@ -92,22 +89,22 @@ propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSig
     checkLockedRefTkn infout = valHashBS infout == Api.ownHash ctx && (any (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ flattenValue (Api.txOutValue infout))
 
     lockedRefTkn :: [(CurrencySymbol, TokenName, Integer)]
-    lockedRefTkn = Data.List.concat (flattenValue `map` (Api.txOutValue `map` (Data.List.filter checkLockedRefTkn (Api.txInfoOutputs txInfo))))
+    lockedRefTkn = concat (flattenValue `map` (Api.txOutValue `map` (filter checkLockedRefTkn (Api.txInfoOutputs txInfo))))
 
     burnedValidationTkn :: [(CurrencySymbol, TokenName, Integer)]
-    burnedValidationTkn = Data.List.filter (\(cs,_,amt) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" && amt == -1) txMint
+    burnedValidationTkn = filter (\(cs,_,amt) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" && amt == -1) txMint
 
     checkSign:: Bool
     checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
 
     checkBurnLock :: Bool
-    checkBurnLock = valEq (head lockedRefTkn) (head burnedValidationTkn)
+    checkBurnLock = listValEq $ lockedRefTkn ++ burnedValidationTkn
 
-    txWinValues :: [(CurrencySymbol, TokenName, Integer)]
-    txWinValues = Data.List.filter (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ Data.List.concat (Data.List.filter ((/=1) . length) . (groupBy valEq) $ Data.List.concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo)))
+--    txWinValues :: [(CurrencySymbol, TokenName, Integer)]
+--    txWinValues = filter (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ concat (filter ((/=1) . length) . (groupBy valEq) $ concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo)))
 
-    checkNfts :: Bool
-    checkNfts =  listValEq txWinValues
+--    checkNfts :: Bool
+--    checkNfts =  listValEq txWinValues
 
 validator :: Scripts.Validator
 validator = Api.Validator $ Api.fromCompiledCode
