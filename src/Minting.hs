@@ -64,7 +64,7 @@ PlutusTx.makeIsDataIndexed ''DatumMetadata [('DatumMetadata, 0)]
 {-# INLINABLE propUpdateVal #-}
 propUpdateVal :: DatumMetadata -> () -> Api.ScriptContext -> Bool
 propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign
- --                      && traceIfFalse "no nft pair" checkNfts
+--                       && traceIfFalse "no nft pair" checkNfts
                        && traceIfFalse "val nft not burnt or ref nft not locked in scr" checkBurnLock
 
   where
@@ -72,10 +72,10 @@ propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSig
     txInfo = Api.scriptContextTxInfo ctx
 
     valEq :: (CurrencySymbol, TokenName, Integer) -> (CurrencySymbol, TokenName, Integer) -> Bool
-    valEq = \(cs,tkn, _) (cs', tkn', _) -> cs == cs' && unTokenName tkn == (unTokenName tkn' <> "_A")
+    valEq = \(cs,tkn, _) (cs', tkn', _) -> cs == cs' && unTokenName tkn == ((unTokenName tkn) `appendByteString` "_A")
 
     listValEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
-    listValEq = \[(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn' <> "_A")
+    listValEq = \[(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn') `appendByteString` "_A"
 
     txMint :: [(CurrencySymbol, TokenName, Integer)]
     txMint = flattenValue (Api.txInfoMint txInfo)
