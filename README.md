@@ -5,18 +5,18 @@ The Idea of the voting system is that anyone can create a question, like in a fo
 
 The datum now of the NFT (proposal_x) locked in the validator script contains a list of the datumMD* which is the metadata. The question field and name are filled.The answers and results fields are empty. The list aslo contains the datumState* which now has the value "INIT"
 
-*
-  const datumMD: Data = new Map<Data, Data>();
+
+* const datumMD: Data = new Map<Data, Data>();
   datumMD.set('name', assetName );
   datumMD.set('question', input);
   datumMD.set('answers', []);
   datumMD.set('results', []);
 
-** 
-  const datumState: Data = new Map<Data, Data>();
+
+* const datumState: Data = new Map<Data, Data>();
   datumState.set('state', 'INIT');
 
-  const datumMetadata: Data = {
+* const datumMetadata: Data = {
     alternative: 0,
     fields: [datumMD, datumState]
   };
