@@ -56,13 +56,14 @@ import           Prelude                                               (FilePath
                                                                         print,
                                                                         (.))
 
-newtype DatumMetadata = DatumMetadata { metadata :: BuiltinData }
+data DatumMetadata = DatumMetadata { metadata :: ![(BuiltinData, BuiltinData)],
+                                     state    :: ![(BuiltinData, BuiltinData)]}
+
 
 PlutusTx.makeLift ''DatumMetadata
 PlutusTx.makeIsDataIndexed ''DatumMetadata [('DatumMetadata, 0)]
 
--- Made INLINABLE from Data.List
-{-# INLINABLE span #-}
+-- Made INLINABLE from Data.List-# INLINABLE span #-}
 span                    :: (a -> Bool) -> [a] -> ([a],[a])
 span _ xs@[]            =  (xs, xs)
 span p xs@(x:xs')
