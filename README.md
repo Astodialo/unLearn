@@ -28,7 +28,7 @@ The NFT (proposal-x_A) in the proposer wallet needs to be burned.
 The NFT (proposal-x) locked in the validator script needs to be locked again in the same validator script.
 The two NFTS must be equal (proposal-x + '_A' = proposal-x_A)
 
-The datum now of the NFT (proposal_x) locked in the validator script contains the updated metadata with the question answers  and name fields filled. The results field is empty and the datumState has the value "VOTE" 
+The datum now of the NFT (proposal_x) locked in the validator script contains the updated metadata with the question, the answers and name fields, filled. The results field is empty and the datumState has the value "VOTE" 
 
 
 ```
@@ -52,8 +52,9 @@ The datum now of the NFT (proposal_x) locked in the validator script contains th
 
 TODO
 
-* Mint another nft (proposal_x_R) that would be responsible for validation to sumbit the answers and update the datum accordingly
-* The datumState would be updated to be either "COMPLETE" if a decision has been made or "CANCELED" if for ny reason the community decidedto (for example if community asnwers werent posted in the answers update phase)
+* Mint another nft (proposal_x_R) that would be responsible for validation, to sumbit the answers and update the datum accordingly
+* The datumState would be updated to be either "COMPLETE" if a decision has been made or "CANCELED" if for any reason the community decided to (for example if community asnwers werent posted in the answers update phase) vote to get cancelled.
+* It should be validated that  "canceled"  is an element of the answers list. Unless the answers list is empty.
 * Implement a collateral that the proposer needs to send when he creates a proposal of X amount
 * If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
 * And the whole voting thing ofc ٩(◕‿◕)۶
