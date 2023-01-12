@@ -61,18 +61,36 @@ newtype DatumMetadata = DatumMetadata { metadata :: BuiltinData }
 PlutusTx.makeLift ''DatumMetadata
 PlutusTx.makeIsDataIndexed ''DatumMetadata [('DatumMetadata, 0)]
 
+-- Made INLINABLE from Data.List
+{-# INLINABLE span #-}
+span                    :: (a -> Bool) -> [a] -> ([a],[a])
+span _ xs@[]            =  (xs, xs)
+span p xs@(x:xs')
+        | p x          =  let (ys,zs) = span p xs' in (x:ys,zs)
+        | otherwise    =  ([],xs)
+
+{-# INLINABLE groupBy #-}
+groupBy                 :: (a -> a -> Bool) -> [a] -> [[a]]
+groupBy _  []           =  []
+groupBy eq (x:xs)       =  (x:ys) : groupBy eq zs
+                           where (ys,zs) = span (eq x) xs
+
+-- Validator that holds reference NFT with metadata
 {-# INLINABLE propUpdateVal #-}
 propUpdateVal :: DatumMetadata -> () -> Api.ScriptContext -> Bool
-propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign
---                       && traceIfFalse "no nft pair" checkNfts
-                       && traceIfFalse "val nft not burnt or ref nft not locked in scr" checkBurnLock
+propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign -- 1.
+                       && traceIfFalse "val nft not burnt or ref nft not locked in scr" checkBurnLock -- 2.
+                       && traceIfFalse "no nft pair" checkNfts -- 3.
 
   where
     txInfo :: Api.TxInfo
     txInfo = Api.scriptContextTxInfo ctx
+--1.
+    checkSign:: Bool
+    checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
 
     valEq :: (CurrencySymbol, TokenName, Integer) -> (CurrencySymbol, TokenName, Integer) -> Bool
-    valEq = \(cs,tkn, _) (cs', tkn', _) -> cs == cs' && unTokenName tkn == ((unTokenName tkn) `appendByteString` "_A")
+    valEq = \(cs,tkn, _) (cs', tkn', _) -> cs == cs' && unTokenName tkn == ((unTokenName tkn') `appendByteString` "_A")
 
     listValEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
     listValEq = \[(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn') `appendByteString` "_A"
@@ -94,27 +112,36 @@ propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSig
     burnedValidationTkn :: [(CurrencySymbol, TokenName, Integer)]
     burnedValidationTkn = filter (\(cs,_,amt) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" && amt == -1) txMint
 
-    checkSign:: Bool
-    checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
-
     checkBurnLock :: Bool
     checkBurnLock = listValEq $ lockedRefTkn ++ burnedValidationTkn
 
---    txWinValues :: [(CurrencySymbol, TokenName, Integer)]
---    txWinValues = filter (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ concat (filter ((/=1) . length) . (groupBy valEq) $ concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo)))
+    txWinValues :: [(CurrencySymbol, TokenName, Integer)]
+    txWinValues = filter (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ concat (filter ((/=1) . length) . (groupBy valEq) $ concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo)))
 
---    checkNfts :: Bool
---    checkNfts =  listValEq txWinValues
+    checkNfts :: Bool
+    checkNfts =  listValEq txWinValues
+
+
+data Typed
+instance TScripts.ValidatorTypes Typed where
+  type instance RedeemerType Typed =()
+  type instance DatumType Typed = DatumMetadata
+
+tvalidator :: TScripts.TypedValidator Typed
+tvalidator = TScripts.mkTypedValidator @Typed
+    $$(PlutusTx.compile [|| propUpdateVal ||])
+    $$(PlutusTx.compile [|| wrap ||])
+  where
+    wrap = TScripts.mkUntypedValidator @DatumMetadata @()
 
 validator :: Scripts.Validator
-validator = Api.Validator $ Api.fromCompiledCode
-    $$(PlutusTx.compile [|| propUpdateVal ||])
+validator = TScripts.validatorScript tvalidator
 
 valHash :: Scripts.ValidatorHash
 valHash = Scripts.validatorHash validator
 
 scrAddr :: Address
-scrAddr = Addr.scriptHashAddress valHash
+scrAddr = TScripts.validatorAddress tvalidator
 
 -- Write Stuff
 script :: Api.Script
