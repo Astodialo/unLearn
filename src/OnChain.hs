@@ -56,6 +56,7 @@ import           Prelude                                               (FilePath
                                                                         print,
                                                                         (.))
 
+
 data DatumMetadata = DatumMetadata { metadata :: ![(BuiltinData, BuiltinData)],
                                      state    :: ![(BuiltinData, BuiltinData)]}
 
@@ -94,7 +95,9 @@ propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSig
     valEq = \(cs,tkn, _) (cs', tkn', _) -> cs == cs' && unTokenName tkn == ((unTokenName tkn') `appendByteString` "_A")
 
     listValEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
-    listValEq = \[(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn') `appendByteString` "_A"
+    listValEq val = case val of
+        [(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn') `appendByteString` "_A"
+        _                             -> False
 
     txMint :: [(CurrencySymbol, TokenName, Integer)]
     txMint = flattenValue (Api.txInfoMint txInfo)
