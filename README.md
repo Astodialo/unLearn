@@ -50,7 +50,7 @@ The datum now of the NFT (proposal_x) locked in the validator script contains th
 
 
 
-TODO
+# TODO
 
 * Mint another nft (proposal_x_R) that would be responsible for validation, to sumbit the answers and update the datum accordingly
 * The datumState would be updated to be either "COMPLETE" if a decision has been made or "CANCELED" if for any reason the community decided to (for example if community asnwers werent posted in the answers update phase) vote to get cancelled.
