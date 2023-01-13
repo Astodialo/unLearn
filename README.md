@@ -54,7 +54,14 @@ TODO
 
 * Mint another nft (proposal_x_R) that would be responsible for validation, to sumbit the answers and update the datum accordingly
 * The datumState would be updated to be either "COMPLETE" if a decision has been made or "CANCELED" if for any reason the community decided to (for example if community asnwers werent posted in the answers update phase) vote to get cancelled.
-* It should be validated that  "canceled"  is an element of the answers list. Unless the answers list is empty.
 * Implement a collateral that the proposer needs to send when he creates a proposal of X amount
 * If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
+
+* Add a datumAmount  field in the datumMetadata list. The field  would first be empty until the results are submitted. If in the voted upon result is an amount then the datumAmount field will contain that value.
+* Add a proposalType field in the datumMD, which will be either "Proposal" || "Funding".
+* If the proposalType is "Proposal" there will be no change and the datumAmount field will remain empty after the results are submitted.
+* If the proposalType is of type "Funding" then the answers need to be sumbited in a different way containing the amount that then will be writen in the datumAmount after the results are submitted.
+* There would then be another NFT minted in the initial tx (proposal-x_Claim).
+* The proposer can then claim the voted amount written in the datumAmount field of the datum of the refernce NFT (proposal_x). For that the proposer should claim the amount from the treasury which is locked in a validator script. To pass validation the proposer through a multisig tx will have to burn the NFT (proposal-x_Claim) in his wallet. It will also have to validate that the amount in the output that the proposer takes is equal to the datumAmount field, referenced from the datum of the NFT (proposal_x) locked in the first validator script that is equal to proposal-x_Claim.
+
 * And the whole voting thing ofc ٩(◕‿◕)۶
