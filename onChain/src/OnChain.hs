@@ -64,7 +64,9 @@ data DatumMetadata = DatumMetadata { metadata :: ![(BuiltinData, BuiltinData)],
 PlutusTx.makeLift ''DatumMetadata
 PlutusTx.makeIsDataIndexed ''DatumMetadata [('DatumMetadata, 0)]
 
--- Made INLINABLE from Data.List-# INLINABLE span #-}
+-- Made INLINABLE from Data.List{
+
+{-# INLINABLE span #-}
 span                    :: (a -> Bool) -> [a] -> ([a],[a])
 span _ xs@[]            =  (xs, xs)
 span p xs@(x:xs')
@@ -80,14 +82,14 @@ groupBy eq (x:xs)       =  (x:ys) : groupBy eq zs
 -- Validator that holds reference NFT with metadata
 {-# INLINABLE propUpdateVal #-}
 propUpdateVal :: DatumMetadata -> () -> Api.ScriptContext -> Bool
-propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign -- 1.
-                       && traceIfFalse "val nft not burnt or ref nft not locked in scr" checkBurnLock -- 2.
-                       && traceIfFalse "no nft pair" checkNfts -- 3.
+propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign
+                       && traceIfFalse "val nft not burnt or ref nft not locked in scr" checkBurnLock
+                       && traceIfFalse "no nft pair" checkNfts
 
   where
     txInfo :: Api.TxInfo
     txInfo = Api.scriptContextTxInfo ctx
---1.
+
     checkSign:: Bool
     checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
 
@@ -148,6 +150,7 @@ scrAddr :: Address
 scrAddr = TScripts.validatorAddress tvalidator
 
 -- Write Stuff
+
 script :: Api.Script
 script = Api.unValidatorScript validator
 
@@ -160,11 +163,7 @@ serialisedScript = PlutusScriptSerialised scriptSBS
 writeSerialisedScript :: IO ()
 writeSerialisedScript = void $ writeFileTextEnvelope "testnet/lockValidator.plutus" Nothing serialisedScript
 
-
 writeJSON :: PlutusTx.ToData a => FilePath -> a -> IO ()
 writeJSON file = LBS.writeFile file . A.encode . scriptDataToJson ScriptDataJsonDetailedSchema . fromPlutusData . Api.toData
-
-writeRedeemer :: IO ()
-writeRedeemer = writeJSON "testnet/redeemer.json" ()
 
 
