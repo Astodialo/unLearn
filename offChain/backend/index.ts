@@ -26,12 +26,10 @@ export async function createTransaction(
 }
 
 export async function signTransaction(
-  assetName: string,
   signedTx: string,
   originalMetadata: string
 ) {
   return await post(`sign-transaction`, {
-    assetName,
     signedTx,
     originalMetadata,
   });
@@ -43,4 +41,12 @@ export async function creatUpdateTx(
   assName: String
 ) {
   return await post(`create-update-tx`, { recipientAddress, utxos, assName});
+}
+
+export async function signiUpdateTx(
+  signedTx: string
+) {
+  return await post(`sign-transaction`, {
+    signedTx
+  });
 }

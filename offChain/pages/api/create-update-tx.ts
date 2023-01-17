@@ -30,6 +30,21 @@ export default async function handler(
   const scriptAddress = 'test'
   const policy = "test"
 
+  function toHex(str:String){
+    var result = ''
+    for (var i = 0; i < str.length; i++) {
+      result += str.charCodeAt(i).toString(16)
+    }
+    return result
+  }
+
+  function buildUnit(policy:String, assetName:String) {
+    return policy + toHex(assetName)
+  }
+
+  const updateUnit = buildUnit(policy, assetName);
+  const burnUnit = buildUnit(policy, assetName.concat('_A'))
+
   const koios = new KoiosProvider('preview')
 
   const appWallet = new AppWallet({
@@ -45,7 +60,7 @@ export default async function handler(
 
   const scriptUtxos = await koios.fetchAddressUTxOs(
     scriptAddress,
-    policy + assetName
+    updateUnit
   );
   const utxo = scriptUtxos[0];
   const datumMetadataCBOR = utxo.output.plutusData;
@@ -53,15 +68,15 @@ export default async function handler(
   
   const [datumMD, datumState] = datumMetadata.fields;
   
-  datumMD.set('answers', [mdAnswers]);
+  datumMD.set('answers', mdAnswers);
 
   datumState.set('state', 'VOTE');
 
   const appWalletAddress = appWallet.getPaymentAddress();
   const forgingScript = ForgeScript.withOneSignature(appWalletAddress);
 
-  const burnerAss : Asset = {
-    unit: policy + assetName.concat("_A") ,
+  const burnAss : Asset = {
+    unit: burnUnit,
     quantity: '1',
   };
 
@@ -75,7 +90,7 @@ export default async function handler(
     datum: datumMetadataCBOR,
   });
   tx.sendValue(scriptAddress, utxo);
-  tx.burnAsset(forgingScript, burnerAss);
+  tx.burnAsset(forgingScript, burnAss);
   tx.setChangeAddress(scriptAddress);
 
  const unsignedTx = await tx.build(); 

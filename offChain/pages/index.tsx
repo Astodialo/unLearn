@@ -25,7 +25,6 @@ export default function Home() {
       const signedTx = await wallet.signTx(unsignedTx, true);
 
       const { appWalletSignedTx } = await signTransaction(
-        assetName,
         signedTx,
         originalMetadata
       );

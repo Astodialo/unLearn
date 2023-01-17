@@ -13,7 +13,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module OnChain where
+module UpdateValidator where
 
 import           Cardano.Api                                           (PlutusScript,
                                                                         PlutusScriptV2,
@@ -64,27 +64,11 @@ data DatumMetadata = DatumMetadata { metadata :: ![(BuiltinData, BuiltinData)],
 PlutusTx.makeLift ''DatumMetadata
 PlutusTx.makeIsDataIndexed ''DatumMetadata [('DatumMetadata, 0)]
 
--- Made INLINABLE from Data.List{
-
-{-# INLINABLE span #-}
-span                    :: (a -> Bool) -> [a] -> ([a],[a])
-span _ xs@[]            =  (xs, xs)
-span p xs@(x:xs')
-        | p x          =  let (ys,zs) = span p xs' in (x:ys,zs)
-        | otherwise    =  ([],xs)
-
-{-# INLINABLE groupBy #-}
-groupBy                 :: (a -> a -> Bool) -> [a] -> [[a]]
-groupBy _  []           =  []
-groupBy eq (x:xs)       =  (x:ys) : groupBy eq zs
-                           where (ys,zs) = span (eq x) xs
-
 -- Validator that holds reference NFT with metadata
 {-# INLINABLE propUpdateVal #-}
 propUpdateVal :: DatumMetadata -> () -> Api.ScriptContext -> Bool
 propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign
                        && traceIfFalse "val nft not burnt or ref nft not locked in scr" checkBurnLock
-                       && traceIfFalse "no nft pair" checkNfts
 
   where
     txInfo :: Api.TxInfo
@@ -93,12 +77,9 @@ propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSig
     checkSign:: Bool
     checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
 
-    valEq :: (CurrencySymbol, TokenName, Integer) -> (CurrencySymbol, TokenName, Integer) -> Bool
-    valEq = \(cs,tkn, _) (cs', tkn', _) -> cs == cs' && unTokenName tkn == ((unTokenName tkn') `appendByteString` "_A")
-
     listValEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
     listValEq val = case val of
-        [(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && unTokenName tkn == (unTokenName tkn') `appendByteString` "_A"
+        [(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && (unTokenName tkn == (unTokenName tkn') `appendByteString` "_A" || unTokenName tkn == (unTokenName tkn') `appendByteString` "_R")
         _                             -> False
 
     txMint :: [(CurrencySymbol, TokenName, Integer)]
@@ -120,12 +101,6 @@ propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSig
 
     checkBurnLock :: Bool
     checkBurnLock = listValEq $ lockedRefTkn ++ burnedValidationTkn
-
-    txWinValues :: [(CurrencySymbol, TokenName, Integer)]
-    txWinValues = filter (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ concat (filter ((/=1) . length) . (groupBy valEq) $ concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` Api.txInfoInputs txInfo)))
-
-    checkNfts :: Bool
-    checkNfts =  listValEq txWinValues
 
 
 data Typed

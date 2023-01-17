@@ -1,5 +1,6 @@
+
 import type { NextApiRequest, NextApiResponse } from "next";
-import { AppWallet, Transaction, KoiosProvider } from "@meshsdk/core";
+import { AppWallet, KoiosProvider } from "@meshsdk/core";
 import { demoMnemonic } from "../../config/wallet";
 
 export default async function handler(
@@ -7,7 +8,6 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const signedTx = req.body.signedTx;
-  const originalMetadata = req.body.originalMetadata;
 
   const koios = new KoiosProvider("preview");
 
@@ -25,12 +25,7 @@ export default async function handler(
    * TODO: Here you want to retrieve the `originalMetadata` from database with the `assetName`
    */
 
-  const signedOriginalTx = Transaction.writeMetadata(
-    signedTx,
-    originalMetadata
-  );
-
-  const appWalletSignedTx = await appWallet.signTx(signedOriginalTx, true);
+  const appWalletSignedTx = await appWallet.signTx(signedTx, true);
 
   res.status(200).json({ appWalletSignedTx });
 }
