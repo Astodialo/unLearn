@@ -19,7 +19,8 @@ maintainer:
 extra-source-files: CHANGELOG.md
 
 library
-  exposed-modules: UpdateValidator
+  exposed-modules: UpdateValidator,
+                   TreasuryValidator
 
   -- Modules included in this library but not exported.
   -- other-modules:

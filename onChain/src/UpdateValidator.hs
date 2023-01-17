@@ -41,11 +41,8 @@ import           Plutus.V1.Ledger.Value                                as V
 import qualified Plutus.V2.Ledger.Api                                  as Api
 import           Plutus.V2.Ledger.Contexts                             as Api
 
-import qualified PlutusTx
-import           PlutusTx.Prelude                                      as Plutus hiding
-                                                                                 (Semigroup (..),
-                                                                                  unless,
-                                                                                  (.))
+import           PlutusTx
+import           PlutusTx.Prelude                                      as Plutus hiding (Semigroup (..), unless, (.))
 
 import           Data.Text                                             (Text)
 import           Prelude                                               (FilePath,
@@ -67,14 +64,14 @@ PlutusTx.makeIsDataIndexed ''DatumMetadata [('DatumMetadata, 0)]
 -- Validator that holds reference NFT with metadata
 {-# INLINABLE propUpdateVal #-}
 propUpdateVal :: DatumMetadata -> () -> Api.ScriptContext -> Bool
-propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signiature" checkSign
+propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
                        && traceIfFalse "val nft not burnt or ref nft not locked in scr" checkBurnLock
 
   where
     txInfo :: Api.TxInfo
     txInfo = Api.scriptContextTxInfo ctx
 
-    checkSign:: Bool
+    checkSign :: Bool
     checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
 
     listValEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
