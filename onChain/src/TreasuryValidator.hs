@@ -31,7 +31,9 @@ import           Data.Functor                                          (void)
 import           GHC.Generics                                          (Generic)
 
 import           Ledger
+import           Ledger.Ada                                            as Ada
 import           Ledger.Constraints                                    as Constraints
+import           Ledger.Constraints.OnChain.V2                         as OnChain
 import           Ledger.Value                                          as Value
 
 import qualified Plutus.Script.Utils.V2.Scripts                        as Scripts
@@ -59,7 +61,7 @@ import           Prelude                                               (FilePath
 
 treasurVal :: BuiltinData -> BuiltinData -> Api.ScriptContext -> Bool
 treasurVal _ _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
-                  && traceIfFalse "no asset burned" checkBurnAmount
+                  && traceIfFalse "wrong amount" payOutCheck
 
   where
     txInfo :: Api.TxInfo
@@ -85,12 +87,29 @@ treasurVal _ _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
     refInput :: Api.TxOut
     refInput = head $ filter (\(Api.TxOut addr val _ _) -> valHashBS addr == "update Validator Addr" && valEq burnAss (flattenValue val)) (Api.txInInfoResolved `map` (Api.txInfoInputs txInfo))
 
-    refDatum :: Api.OutputDatum
+    refDatum :: BuiltinData
     refDatum = case refInput of
-       Api.TxOut _ _ dtm _-> dtm
+        Api.TxOut _ _ outputDtm _-> case outputDtm of
+            Api.OutputDatum dtm -> getDatum dtm
 
-    checkBurnAmount :: Bool
-    checkBurnAmount = True
+    dtmAmount :: Data
+    dtmAmount = case toData refDatum of
+       Constr _ [_, _, datumAmount] -> (\(Map [(_, amt)]) -> amt) datumAmount
+
+    amount :: Integer
+    amount = case dtmAmount of
+        I amt     -> amt
+        otherwise -> 0
+
+    receiverAddr :: PubKeyHash
+    receiverAddr = head $ filter (/="5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f") (Api.txInfoSignatories txInfo)
+
+    payOutConstraint :: TxConstraints () ()
+    payOutConstraint = mustPayToPubKey (PaymentPubKeyHash receiverAddr) (lovelaceValueOf (amount))
+
+    payOutCheck :: Bool
+    payOutCheck = OnChain.checkScriptContext payOutConstraint ctx
+
 
 validator :: Scripts.Validator
 validator = Api.Validator $ Api.fromCompiledCode
