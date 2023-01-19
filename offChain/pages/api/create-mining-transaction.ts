@@ -10,7 +10,6 @@ import { resolveDataHash } from '@meshsdk/core';
 import type { Mint, Data } from "@meshsdk/core";
 import { demoMnemonic } from "../../config/wallet";
 import {
-  assetsMetadata,
   idArray,
   bankWalletAddress,
   costLovelace,
@@ -106,5 +105,5 @@ export default async function handler(
 
   // In this starter template, we send `originalMetadata` to the frontend.
   // Not recommended, its better to save the `originalMetadata` in a database.
-  res.status(200).json({ assetName, assetId, unsignedTx, originalMetadata });
+  res.status(200).json({ unsignedTx, originalMetadata });
 }

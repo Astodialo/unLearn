@@ -57,7 +57,7 @@ import           Prelude                                               (FilePath
                                                                         print,
                                                                         (.))
 
-treasurVal :: () -> () -> Api.ScriptContext -> Bool
+treasurVal :: BuiltinData -> BuiltinData -> Api.ScriptContext -> Bool
 treasurVal _ _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
                   && traceIfFalse "no asset burned" checkBurnAmount
 
@@ -92,3 +92,29 @@ treasurVal _ _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
     checkBurnAmount :: Bool
     checkBurnAmount = True
 
+validator :: Scripts.Validator
+validator = Api.Validator $ Api.fromCompiledCode
+    $$(PlutusTx.compile [|| treasurVal ||])
+
+valHash :: Ledger.ValidatorHash
+valHash = Scripts.validatorHash validator
+
+scrAddress :: Ledger.Address
+scrAddress = scriptHashAddress valHash
+
+-- Write Stuff
+
+script :: Api.Script
+script = Api.unValidatorScript validator
+
+scriptSBS :: SBS.ShortByteString
+scriptSBS = SBS.toShort . LBS.toStrict $ serialise script
+
+serialisedScript :: PlutusScript PlutusScriptV2
+serialisedScript = PlutusScriptSerialised scriptSBS
+
+writeSerialisedScript :: IO ()
+writeSerialisedScript = void $ writeFileTextEnvelope "testnet/lockValidator.plutus" Nothing serialisedScript
+
+writeJSON :: PlutusTx.ToData a => FilePath -> a -> IO ()
+writeJSON file = LBS.writeFile file . A.encode . scriptDataToJson ScriptDataJsonDetailedSchema . fromPlutusData . Api.toData
