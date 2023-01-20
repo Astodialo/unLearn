@@ -74,7 +74,7 @@ treasurVal _ _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
     checkSign = "5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f" `elem` map getPubKeyHash (Api.txInfoSignatories txInfo)
 
     valEq :: (CurrencySymbol, TokenName, Integer) -> [(CurrencySymbol, TokenName, Integer)] -> Bool
-    valEq (cs, tkn, _) val =  any (\(cs', tkn', _) -> cs == cs' && (unTokenName tkn == (unTokenName tkn') `appendByteString` "_A") || unTokenName tkn == (unTokenName tkn') `appendByteString` "_R") val
+    valEq (cs, tkn, _) val =  any (\(cs', tkn', _) -> cs == cs' && (unTokenName tkn == (unTokenName tkn') `appendByteString` "_Claim")) val
 
     burnAss :: (CurrencySymbol, TokenName, Integer)
     burnAss = head $ filter (\(cs, _, amt) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" && amt == -1) txMint

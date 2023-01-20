@@ -57,6 +57,10 @@ export default async function handler(
   const datumState: Data = new Map<Data, Data>();
   datumState.set('state', 'INIT');
 
+  const datumAmount: Data = new Map<Data, Data>();
+  datumAmount.set('amount', 0);
+
+
   const datumMetadata: Data = {
     alternative: 0,
     fields: [datumMD, datumState]

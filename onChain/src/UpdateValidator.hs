@@ -42,7 +42,10 @@ import qualified Plutus.V2.Ledger.Api                                  as Api
 import           Plutus.V2.Ledger.Contexts                             as Api
 
 import           PlutusTx
-import           PlutusTx.Prelude                                      as Plutus hiding (Semigroup (..), unless, (.))
+import           PlutusTx.Prelude                                      as Plutus hiding
+                                                                                 (Semigroup (..),
+                                                                                  unless,
+                                                                                  (.))
 
 import           Data.Text                                             (Text)
 import           Prelude                                               (FilePath,
@@ -55,7 +58,8 @@ import           Prelude                                               (FilePath
 
 
 data DatumMetadata = DatumMetadata { metadata :: ![(BuiltinData, BuiltinData)],
-                                     state    :: ![(BuiltinData, BuiltinData)]}
+                                     state    :: ![(BuiltinData, BuiltinData)],
+                                     amount   :: ![(BuiltinData, BuiltinData)]}
 
 
 PlutusTx.makeLift ''DatumMetadata
@@ -77,7 +81,7 @@ propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
     listValEq :: [(CurrencySymbol, TokenName, Integer)] -> Bool
     listValEq val = case val of
         [(cs,tkn, _), (cs', tkn', _)] -> cs == cs' && (unTokenName tkn == (unTokenName tkn') `appendByteString` "_A" || unTokenName tkn == (unTokenName tkn') `appendByteString` "_R")
-        _                             -> False
+        otherwise                             -> False
 
     txMint :: [(CurrencySymbol, TokenName, Integer)]
     txMint = flattenValue (Api.txInfoMint txInfo)
