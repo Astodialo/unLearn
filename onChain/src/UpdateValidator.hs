@@ -95,7 +95,8 @@ propUpdateVal dtm _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
     checkLockedRefTkn infout = valHashBS infout == Api.ownHash ctx && (any (\(cs, _, _) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" ) $ flattenValue (Api.txOutValue infout))
 
     lockedRefTkn :: [(CurrencySymbol, TokenName, Integer)]
-    lockedRefTkn = concat (flattenValue `map` (Api.txOutValue `map` (filter checkLockedRefTkn (Api.txInfoOutputs txInfo))))
+    -- lockedRefTkn = concat (flattenValue `map` (Api.txOutValue `map` (filter checkLockedRefTkn (Api.txInfoOutputs txInfo))))
+    lockedRefTkn = concat $ flattenValue `map` (Api.txOutValue `map` (Api.txInfoOutputs txInfo))
 
     burnedValidationTkn :: [(CurrencySymbol, TokenName, Integer)]
     burnedValidationTkn = filter (\(cs,_,amt) -> cs == CurrencySymbol "d9312da562da182b02322fd8acb536f37eb9d29fba7c49dc17255527" && amt == -1) txMint
