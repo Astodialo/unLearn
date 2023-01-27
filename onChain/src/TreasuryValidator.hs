@@ -94,7 +94,7 @@ treasurVal _ _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
 
     dtmAmount :: Data
     dtmAmount = case toData refDatum of
-       Constr _ [_, _, datumAmount] -> (\(Map [(_, amt)]) -> amt) datumAmount
+       Constr _ [_, _, _, _, _, _, datumAmount] -> (\(Map [(_, amt)]) -> amt) datumAmount
 
     amount :: Integer
     amount = case dtmAmount of

@@ -57,9 +57,13 @@ import           Prelude                                               (FilePath
                                                                         (.))
 
 
-data DatumMetadata = DatumMetadata { metadata :: ![(BuiltinData, BuiltinData)],
-                                     state    :: ![(BuiltinData, BuiltinData)],
-                                     amount   :: ![(BuiltinData, BuiltinData)]}
+data DatumMetadata = DatumMetadata { datumN      :: ![(BuiltinData, BuiltinData)],
+                                     datumT      :: ![(BuiltinData, BuiltinData)],
+                                     datumQ      :: ![(BuiltinData, BuiltinData)],
+                                     datumA      :: ![(BuiltinData, BuiltinData)],
+                                     datumR      :: ![(BuiltinData, BuiltinData)],
+                                     datumState  :: ![(BuiltinData, BuiltinData)],
+                                     datumAmount :: ![(BuiltinData, BuiltinData)]}
 
 
 PlutusTx.makeLift ''DatumMetadata

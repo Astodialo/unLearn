@@ -48,11 +48,20 @@ export default async function handler(
   const assetId = idArray.pop();
   const assetName = `${assetIdPrefix}${assetId}`;
 
-  const datumMD: Data = new Map<Data, Data>();
-  datumMD.set('name', assetName );
-  datumMD.set('question', input);
-  datumMD.set('answers', []);
-  datumMD.set('results', []);
+  const datumN: Data = new Map<Data, Data>();
+  datumN.set('name', assetName );
+
+  const datumT: Data = new Map<Data, Data>();
+  datumT.set('type', input2) // It can either be a simple proposal or proposal for funding etc. 
+
+  const datumQ: Data = new Map<Data, Data>();
+  datumQ.set('question', input);
+
+  const datumA: Data = new Map<Data, Data>();
+  datumA.set('answers', []);
+
+  const datumR: Data = new Map<Data, Data>();
+  datumR.set('results', []);
   
   const datumState: Data = new Map<Data, Data>();
   datumState.set('state', 'INIT');
@@ -63,7 +72,7 @@ export default async function handler(
 
   const datumMetadata: Data = {
     alternative: 0,
-    fields: [datumMD, datumState]
+    fields: [datumN, datumT, datumQ, datumA, datumR, datumState, datumAmount]
   };
 
   const assetQ: Mint = {

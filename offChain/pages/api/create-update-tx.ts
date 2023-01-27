@@ -66,9 +66,9 @@ export default async function handler(
   const datumMetadataCBOR = utxo.output.plutusData;
   const datumMetadata = readPlutusData(datumMetadataCBOR);
   
-  const [datumMD, datumState] = datumMetadata.fields;
+  const [datumN, datumT, datumQ, datumA, datumR, datumState, datumAmount]  = datumMetadata.fields;
   
-  datumMD.set('answers', mdAnswers);
+  datumN.set('answers', mdAnswers);
 
   datumState.set('state', 'VOTE');
 
