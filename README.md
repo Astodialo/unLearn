@@ -44,32 +44,10 @@ The datum now of the NFT (proposal_x) locked in the validator script contains th
 
 
 ```
-const datumN: Data = new Map<Data, Data>();
-datumN.set('name', assetName );
+datumA.set('answers', user_input);
 
-const datumT: Data = new Map<Data, Data>();
-datumT.set('type', user_input) // It can either be a simple proposal or proposal for funding etc. 
-
-const datumQ: Data = new Map<Data, Data>();
-datumQ.set('question', user_input2);
-
-const datumA: Data = new Map<Data, Data>();
-datumA.set('answers', user_input3);
-
-const datumR: Data = new Map<Data, Data>();
-datumR.set('results', []);
-  
-const datumState: Data = new Map<Data, Data>();
 datumState.set('state', 'VOTE');
 
-const datumAmount: Data = new Map<Data, Data>();
-datumAmount.set('amount', 0);
-
-
-const datumMetadata: Data = {
-  alternative: 0,
-  fields: [datumN, datumT, datumQ, datumA, datumR, datumState, datumAmount]
-};
 ```
 
 # TODO
