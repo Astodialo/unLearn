@@ -92,7 +92,7 @@ export default async function handler(
         version: 'V1',
         code : '4e4d01000033222220051200120011'
     },
-    datum: datumMetadataCBOR,
+    datum: datumMetadata,
   });
   tx.sendValue(scriptAddress, utxo);
   tx.burnAsset(forgingScript, burnAss);
