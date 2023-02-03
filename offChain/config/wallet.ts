@@ -1,5 +1,5 @@
 export const demoMnemonic = [
-  'solution',
+  'card',
   'solution',
   'solution',
   'solution',
