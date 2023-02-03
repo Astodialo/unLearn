@@ -93,13 +93,13 @@ treasurVal _ _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
             Api.OutputDatum dtm -> getDatum dtm
 
     dtmAmount :: Data
-    dtmAmount = case toData refDatum of
-       Constr _ [_, _, _, _, _, _, datumAmount] -> (\(Map [(_, amt)]) -> amt) datumAmount
+    dtmAmount = case refDatum of
+       Api.BuiltinData (Constr _ [_, _, _, _, _, _, datumAmount]) -> (\(Map [(_, amt)]) -> amt) datumAmount
 
     amount :: Integer
     amount = case dtmAmount of
-        I amt     -> amt
-        otherwise -> 0
+        I amt -> amt
+        _     -> 0
 
     receiverAddr :: PubKeyHash
     receiverAddr = head $ filter (/="5867c3b8e27840f556ac268b781578b14c5661fc63ee720dbeab663f") (Api.txInfoSignatories txInfo)
@@ -111,29 +111,3 @@ treasurVal _ _ ctx = traceIfFalse "no mint/burn wallet signature" checkSign
     payOutCheck = OnChain.checkScriptContext payOutConstraint ctx
 
 
-validator :: Scripts.Validator
-validator = Api.Validator $ Api.fromCompiledCode
-    $$(PlutusTx.compile [|| treasurVal ||])
-
-valHash :: Ledger.ValidatorHash
-valHash = Scripts.validatorHash validator
-
-scrAddress :: Ledger.Address
-scrAddress = scriptHashAddress valHash
-
--- Write Stuff
-
-script :: Api.Script
-script = Api.unValidatorScript validator
-
-scriptSBS :: SBS.ShortByteString
-scriptSBS = SBS.toShort . LBS.toStrict $ serialise script
-
-serialisedScript :: PlutusScript PlutusScriptV2
-serialisedScript = PlutusScriptSerialised scriptSBS
-
-writeSerialisedScript :: IO ()
-writeSerialisedScript = void $ writeFileTextEnvelope "testnet/lockValidator.plutus" Nothing serialisedScript
-
-writeJSON :: PlutusTx.ToData a => FilePath -> a -> IO ()
-writeJSON file = LBS.writeFile file . A.encode . scriptDataToJson ScriptDataJsonDetailedSchema . fromPlutusData . Api.toData
