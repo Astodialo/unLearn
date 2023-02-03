@@ -5,7 +5,8 @@ import {
   Transaction,
   KoiosProvider,
   largestFirst,
-  readPlutusData
+  deserializePlutusData,
+  fromPlutusData
 } from "@meshsdk/core";
 import { resolveDataHash } from '@meshsdk/core';
 import type { Mint, Data, Asset } from "@meshsdk/core";
@@ -29,6 +30,10 @@ export default async function handler(
 
   const scriptAddress = 'test'
   const policy = "test"
+
+  const readPlutusData = (plutusData: string): Data => {
+    return fromPlutusData(deserializePlutusData(plutusData));
+  };
 
   function toHex(str:String){
     var result = ''
