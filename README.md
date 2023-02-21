@@ -1,7 +1,7 @@
-# bc-procrion
-The proposal creation part of a voting system on blockchain.
+# unLearn
+The framework for of a voting/community funding system on blockchain.
 
-The Idea of the voting system is that anyone can create a question, like in a forum. The Question is going to be taken from the user from the frontend and then it will be written in the metadata. The metadata are in the datum (CIP-68 inspired) of an NFT (name: proposal-x) which is going to be minted by the proposer and then locked in a validator script through a multi-sig transaction. In the same transaction a second NFT (name: proposal-x_A) is going to be minted and sent to the proposer. A third NFT (name: proposal-x_R) is also minted in the transaction and sent to the person/group/script responsible for the voting process. If the proposal has the type* value equal "Funding" then a fourth NFT is minted (name: proposal-x_Claim) and is sent t the proposer.
+The Idea of the voting system is that anyone can create a question/proposal, like in a forum. The Question is going to be taken from the user from the frontend and then it will be written in the metadata. The metadata are in the datum (CIP-68 inspired) of an NFT (name: proposal-x) which is going to be minted by the proposer and then locked in a validator script through a multi-sig transaction. In the same transaction a second NFT (name: proposal-x_A) is going to be minted and sent to the proposer. A third NFT (name: proposal-x_R) is also minted in the transaction and sent to the person/group/script responsible for the voting process. If the proposal has the type* value equal "Funding" then a fourth NFT is minted (name: proposal-x_Claim) and is sent t the proposer.
 
 The datum now of the NFT (proposal_x) locked in the validator script contains a list of the "metadata". The question, type and name fields are filled.The answers and results fields are empty. The list aslo contains the datumState* which now has the value "INIT" and the datumAmount which is 0.
 
@@ -69,5 +69,5 @@ datumR.set('results', []);
 # TODO
 * Implement a collateral that the proposer needs to send when he creates a proposal of X amount
 * If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
-
+(?) Make the claim phase for multiple wallets (?)
 * And the whole voting thing ofc ٩(◕‿◕)۶
