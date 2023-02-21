@@ -67,6 +67,7 @@ datumR.set('results', []);
   The two NFTS must be equal (proposal-x + '_Claim' = proposal-x_Claim)
 
 # TODO
+* Better Minting Process
 * Implement a collateral that the proposer needs to send when he creates a proposal of X amount
 * If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
 (?) Make the claim phase for multiple wallets (?)
