@@ -68,6 +68,7 @@ datumR.set('results', []);
 
 # TODO
 * Better Minting Process
+* Always include The 0.Cancell option as a voting choice.
 * Implement a collateral that the proposer needs to send when he creates a proposal of X amount
 * If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
 (?) Make the claim phase for multiple wallets (?)
