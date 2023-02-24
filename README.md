@@ -59,6 +59,7 @@ After that the NFT (proposal-x) is locked in the script. If in the datum of the 
 
 TODO
 * Better Minting Process almost done boi
+* Change the minting validator so it can use a different appwallet if the current one is hacked. Even if the current wallet is hacked there is not a way to get any funds from the DOA since it would still go through the regular procedure and it can be voted cancelled.
 * Always include The 0.Cancell option as a voting choice.
 * Implement a collateral that the proposer needs to send when he creates a proposal of X amount
 * If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
@@ -66,3 +67,4 @@ TODO
 * Voting system results must be read as a reference output to update the results (datumR) field
 * Frontend work (A lot)
 * OffChain forum with the posibility to push a forum post to an onchain proposal
+
