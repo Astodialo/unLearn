@@ -1,6 +1,8 @@
 unLearn
 A DAO on Cardano.
 
+The DAOs idaniko NFT contains the manifesto. The goal the DAO tries to achieve, the members of the DAO are requested to join or create the DAO that coenxists with their ideals and they are willing to work and vote to achieve it. The DAO is going to give people with the same ideals to work on achieving those goals and help in their own way. Only the community can decide whether to approve the funding. In the proposal the amount of the funding is going to be decided by the community in a modular proposal creation and voting tool. All the initiatives started from the DAO will have a validation NFT to go with and validate the originality of the DAO product. The income from the initiatives is going to be locked in the Treasry Validator and the proposer will be able to receive the amount, previously agreed upon with the community, with a voucher NFT.   
+
 The Idea of the DAO is that anyone can create a question/proposal, like in a forum. The Question is going to be taken from the user from the frontend and then it will be written in the metadata. The metadata are in the datum (CIP-68 inspired) of an NFT (name: proposal-x) which is going to be minted by the proposer and then locked in a validator script through a multi-sig transaction. In the same transaction a second NFT (name: proposal-x_A) is going to be minted and sent to the proposer. A third NFT (name: proposal-x_R) is also minted in the transaction and sent to the person/group/script responsible for the voting process. If the proposal has the type* value equal "Funding" then a fourth NFT is minted (name: proposal-x_Claim) and is sent t the proposer.
 
 In the first proposal that is minted, the genesis proposal, two more NFTs will be minted the unArxh NFT and the idaniko NFT. Those two are going to be locked in a the unArxh validator. For this minting to happen the unArxh validator address must be empty, so that the minting of thos 2 NFTs can only happen once. The unArxh NFT contains in the datum the counter for the proposal NFTs (TxId) and other general information about the DAO. It is the beginning and the history of the DAO so it is going to be updated in every proposal NFT mint. The idaniko NFT is the ideal of the DAO. This NFT uses the basic NFT metadata standard and in the metadata it contains a homage to the ideals the DAO was created from. The idaniko NFT will be locked in the unArxh validator. The validator is going to ensure that the idaniko NFT is never moved from there. The reason is so that the unArxh validator address can never be empty again. So the two genesis NFTs can never be minted again.
@@ -67,4 +69,4 @@ TODO
 * Voting system results must be read as a reference output to update the results (datumR) field
 * Frontend work (A lot)
 * OffChain forum with the posibility to push a forum post to an onchain proposal
-
+* Provide option fro different ways of funding
