@@ -58,10 +58,11 @@ datumAmount.set('amount', result_amount)
 After that the NFT (proposal-x) is locked in the script. If in the datum of the NFT the type field is equal to "Funding" and the state field is equal to "COMPLETE" then the proposer can interact with the treasury script and claim the amount voted for. To claim the amount the proposer must pass the validation. To pass the validation: The proposer must burn the NFT (proposal_x_Claim) The output of the tx must be only one The amount taken from the treasury script must be equal to the amount field in the datum of the NFT (proposal-x) locked in the update script The two NFTS must be equal (proposal-x + '_Claim' = proposal-x_Claim)
 
 TODO
-*Better Minting Process almost done boi
-*Always include The 0.Cancell option as a voting choice.
-*Implement a collateral that the proposer needs to send when he creates a proposal of X amount
-*If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
-*And the whole voting thing ofc ٩(◕‿◕)۶
-*Frontend work (A lot)
-*OffChain forum with the posibility to push a forum post to an onchain proposal
+* Better Minting Process almost done boi
+* Always include The 0.Cancell option as a voting choice.
+* Implement a collateral that the proposer needs to send when he creates a proposal of X amount
+* If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
+* And the whole voting thing ofc ٩(◕‿◕)۶
+* Voting system results must be read as a reference output to update the results (datumR) field
+* Frontend work (A lot)
+* OffChain forum with the posibility to push a forum post to an onchain proposal
