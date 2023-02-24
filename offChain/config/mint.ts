@@ -9,6 +9,14 @@ export var idArray = Array.from(
   (_, index) => 100 - index
 );
 
+export const idanikoMetadata = {
+  0: {
+    name: "idaniko",
+    ena: "leuteria.",
+  }
+};
+
+
 export const assetsMetadata: { [id: string]: AssetMetadata } = {
   "0": {
     name: "Proposal 00",
