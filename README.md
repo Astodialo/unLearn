@@ -1,6 +1,4 @@
-unLearn
-
-A direct democracy initiative on Cardano.
+unLearn: A direct democracy initiative on Cardano.
 
 unLearn'ss idaniko NFT contains the manifesto, the goal we trie to achieve. The users are requested to join or create the organisation that resonates with their ideals and they are willing to work and vote to further that goal. Only the community can decide whether to approve a funding in a fair way, no coin weighted bs. In the proposal, the amount of the funding is going to be decided by the community in a modular proposal creation and voting tool. All the initiatives started from the DAO will have a validation NFT to go with, and validate the originality of the product. The income from the initiatives is going to be locked in the Treasury Validator and the proposer will be able to receive the funding, previously agreed upon with the community, with a voucher NFT.
 
