@@ -1,16 +1,16 @@
 cabal-version:      2.4
-name:               bc-procrion
+name:               unLearn 
 version:            0.1.0.0
-synopsis:           The proposal creation part of a voting system on blockchain
+synopsis:           A direct democracy initiative on blockchain
 
 -- A longer description of the package.
 -- description:
-homepage:           https://github.com/Astodialo/bc-procrion
+homepage:           https://github.com/Astodialo/unLearn
 
 -- A URL where users can report bugs.
 -- bug-reports:
 license:
-author:             $kavvadias
+author:             astodialo
 maintainer:
 
 -- A copyright notice.
@@ -20,7 +20,8 @@ extra-source-files: CHANGELOG.md
 
 library
   exposed-modules: UpdateValidator,
-                   TreasuryValidator
+                   TreasuryValidator,
+                   UnArxhValidator
 
   -- Modules included in this library but not exported.
   -- other-modules:
