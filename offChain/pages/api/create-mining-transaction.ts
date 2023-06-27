@@ -65,14 +65,14 @@ export default async function handler(
   const unArxhUTXO = await koios.fetchAddressUTxOs( 'unArxi validator addr' )
 
   const assetId = "0"
-  /*if (unArxhUTXO.length !== 0) {
+  if (unArxhUTXO.length !== 0) {
       const scriptUtxos = await koios.fetchAddressUTxOs('unArxh validator addr', 'unArxi assetId')
       const utxo = scriptUtxos[0];
       const datumMetadataCBOR = utxo.output.plutusData;
       const datumMetadata = readPlutusData(datumMetadataCBOR);
       const [ assetId ] = datumMetadata.fields
   }
-  */
+  
   // unArxh NFTs
   
   // --Datum--
@@ -89,7 +89,7 @@ export default async function handler(
   // The datum of an nft that is going to be locked in the unArxh validator. After the first mint where the unArxh validator address is empty, this NFT is going to stay forever locked, ensuring not to be moved on the Plutus validator. The reason is so that there can never be a point after the first mint that someone can mint the unArxh and idaniko NFTs. It will contain in the metadata what the ideals of the dao are.
 
   const idaniko_ena: Data = new Map<Data, Data>();
-  idaniko_ena.set('ena', 'leuteria')
+  idaniko_ena.set('unLearn', 'Forum')
 
   const idanikoDatum: Data = {
     alternative: 0,
