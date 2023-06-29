@@ -36,6 +36,7 @@ import           Ledger.Constraints                                    as Constr
 import           Ledger.Constraints.OnChain.V2                         as OnChain
 import           Ledger.Value                                          as Value
 
+import           Plutus.Script.Utils.V2.Address                        as Address
 import qualified Plutus.Script.Utils.V2.Scripts                        as Scripts
 import qualified Plutus.Script.Utils.V2.Typed.Scripts                  as TScripts
 import qualified Plutus.Script.Utils.V2.Typed.Scripts.MonetaryPolicies as Scripts
@@ -62,11 +63,16 @@ import           Prelude                                               (FilePath
 {-# INLINABLE unArxhValidator #-}
 unArxhValidator :: () -> () -> Api.ScriptContext -> Bool
 unArxhValidator _ _ ctx = traceIfFalse "moving the unmovable" unmovable
+                       && traceIfFalse "burnig the unburnedable" unburnable
 
   where
     txInfo :: Api.TxInfo
     txInfo = Api.scriptContextTxInfo ctx
 
     unmovable :: Bool
-    unmovable =  notElem "dianiko currency symbol" (map (\(cs,_ ,_) -> cs ) (flattenValue (Api.txInfoMint txInfo)))
+    unmovable =  notElem "idaniko currency symbol" (map (\[(cs,_ ,_)] -> cs ) $ (flattenValue `map` (Api.txOutValue `map` (Api.txInInfoResolved `map` (Api.txInfoInputs txInfo)))))
+
+    unburnable :: Bool
+    unburnable = notElem "idaniko currency symbol" (map (\(cs,_,_) -> cs) $ (flattenValue (Api.txInfoMint txInfo)))
+
 
