@@ -1,0 +1,14 @@
+name = "delos/unlearn"
+version = "0.0.0"
+license = "Apache-2.0"
+description = "Contracts for governance of a treasury"
+
+[repository]
+user = "delos"
+project = "unlearn"
+platform = "github"
+
+[[dependencies]]
+name = "aiken-lang/stdlib"
+version = "1.6.0"
+source = "github"
