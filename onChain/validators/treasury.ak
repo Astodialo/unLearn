@@ -67,7 +67,7 @@ validator {
           amount:ref_amount, ..
         }: Metadata = ref_datum
 
-        todo
+        helper.correct_amount(txOut, ref_amount)  
 
       }
 
