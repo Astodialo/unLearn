@@ -2,7 +2,7 @@ use aiken/builtin
 use aiken/dict
 use aiken/bytearray
 use aiken/list
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum}
+use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, ScriptPurpose, Spend}
 use aiken/transaction/value
 use aiken/transaction/credential
 use unlearn/helper
@@ -20,56 +20,32 @@ validator {
     fn updater(_datum, ctx: ScriptContext) -> Bool {
       let txInfo = ctx.transaction
       let txOut = txInfo.outputs
-      
       let txMint = txInfo.mint 
-        |> value.from_minted_value
-        |> value.flatten
-      
-      let burn_ass_option = txMint
-        |> list.filter(_, fn(ass: (value.PolicyId, _, Int)) -> Bool {
-          let (policy, _, amt) = ass
+          |> value.from_minted_value
+          |> value.flatten
+        
+      expect Spend(own_reference) = ctx.purpose
 
-          policy == "" && amt == -1
-        })
-        |> list.head
-         
-      expect Some(burn_ass) = burn_ass_option
-      
-      let input_ref_option = txInfo.inputs
-        |> list.map(_, fn(input: Input) {
-          let Input {output_reference, output} = input
+      let own_input = helper.own_validator_input_utxo(txInfo.inputs, own_reference)
 
-          output
-        })
-        |> list.filter(_, fn(output: Output) -> Bool {
-          let Output {address, value, ..}  = output
+      let Output { address: in_address, value: in_value, ..} = own_input
 
-          helper.valEq(burn_ass, value.flatten(value)) 
-        })
-        |> list.head(_)
+      let credential = in_address.payment_credential 
 
-      expect Some(input_ref_token) = input_ref_option
+      expect credential.ScriptCredential(own_validator_hash) = credential
 
-      let output_ref_token_option = txOut 
-        |> list.filter(_,fn(output: Output) -> Bool{
-          let Output {address, value, ..} = output
+      expect [own_output] = list.filter(txOut, fn(output: Output) { 
+        output.address == in_address
+      })
 
-          helper.valEq(burn_ass, value.flatten(value))
-        })
-        |> list.head(_)
+      let Output { datum: out_datum, value: out_value, .. } = own_output
 
-      expect Some(output_ref_token) = output_ref_token_option
+      expect [burn_ass] = list.filter(txMint, fn(ass: (value.PolicyId, _, Int)) -> Bool {
+        let (policy, _, amt) = ass
 
-      expect Output {address: in_addr, ..} = input_ref_token 
-      expect credential.Address {payment_credential: in_cred, ..} = in_addr 
-      expect credential.ScriptCredential(in_script) = in_cred
+        policy == "" && amt == -1
+      })
 
-      expect Output {address: out_addr, ..} = output_ref_token
-      expect credential.Address {payment_credential: out_cred, ..} = out_addr 
-      expect credential.ScriptCredential(out_script) = out_cred
-
-
-      list.length(txMint) == 1 &&  bytearray.compare(out_script, in_script) == Equal
-
+      helper.valEq(burn_ass, value.flatten(out_value))
     }
   }

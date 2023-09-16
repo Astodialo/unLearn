@@ -2,7 +2,7 @@ use aiken/builtin
 use aiken/dict
 use aiken/bytearray
 use aiken/list
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum}
+use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, OutputReference}
 use aiken/transaction/value
 use aiken/transaction/credential
 
@@ -27,4 +27,12 @@ pub fn correct_amount(outputs: List<Output>, ref_amount: Int) -> Bool {
 
   value.lovelace_of(val) == ref_amount &&
   list.length(value.flatten(value.without_lovelace(val))) == 0 
+}
+
+pub fn own_validator_input_utxo(inputs: List<Input>, output_reference: OutputReference,) -> Output {
+  expect Some(input) = list.find(inputs, fn(input) { 
+    input.output_reference == output_reference
+  })
+
+  input.output
 }
