@@ -32,11 +32,9 @@ validator {
             policy == "" && amt == -1
           })
           |> list.head
+           
+          expect Some(burn_ass) = burn_ass_option
 
-          let burn_ass = when burn_ass_option is {
-            Some(ass) -> ass
-            None  -> todo
-          }
 
         let ref_input_option = txInfo.reference_inputs
           |> list.map(_, fn(input: Input) {
@@ -51,19 +49,11 @@ validator {
           })
           |> list.head(_)
 
-          let ref_input = when ref_input_option is {
-            Some(in) -> in
-            None  -> todo
-          }
+          expect Some(ref_input) = ref_input_option
 
         expect InlineDatum(ref_datum) = ref_input.datum 
 
         expect Metadata {
-          //name: ref_name,
-          //proposal: ref_prop,
-          //answers: ref_answers,
-          //results: ref_results,
-          //state: ref_state,
           amount:ref_amount, ..
         }: Metadata = ref_datum
 
