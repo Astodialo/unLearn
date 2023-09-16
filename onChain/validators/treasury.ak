@@ -33,7 +33,7 @@ validator {
           })
           |> list.head
            
-          expect Some(burn_ass) = burn_ass_option
+        expect Some(burn_ass) = burn_ass_option
 
 
         let ref_input_option = txInfo.reference_inputs
@@ -49,7 +49,7 @@ validator {
           })
           |> list.head(_)
 
-          expect Some(ref_input) = ref_input_option
+        expect Some(ref_input) = ref_input_option
 
         expect InlineDatum(ref_datum) = ref_input.datum 
 
@@ -57,7 +57,7 @@ validator {
           amount:ref_amount, ..
         }: Metadata = ref_datum
 
-        helper.correct_amount(txOut, ref_amount)  
+        helper.correct_amount(txOut, ref_amount) && list.length(txMint) == 1 
 
       }
 

@@ -22,6 +22,9 @@ pub fn valEq(ass: (value.PolicyId, value.AssetName, Int), val: List<(value.Polic
 
 pub fn correct_amount(outputs: List<Output>, ref_amount: Int) -> Bool {
   expect Some(output) = list.head(outputs)
+
   let Output {address: addr, value: val, ..} = output
-  value.lovelace_of(val) == ref_amount && list.length(value.flatten(value.without_lovelace(val))) == 0
+
+  value.lovelace_of(val) == ref_amount &&
+  list.length(value.flatten(value.without_lovelace(val))) == 0 
 }
