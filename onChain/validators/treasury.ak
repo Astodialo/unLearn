@@ -5,7 +5,7 @@ use aiken/list
 use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, ScriptPurpose, Spend}
 use aiken/transaction/value
 use aiken/transaction/credential
-use unlearn/helper
+use unlearn
 
 type Metadata {
   name:     ByteArray,
@@ -40,7 +40,7 @@ validator {
           |> list.filter(_, fn(output: Output) -> Bool {
             let Output {address, value, ..}  = output
 
-            helper.valEq(burn_ass, value.flatten(value)) 
+            unlearn.valEq(burn_ass, value.flatten(value)) 
           })
           |> list.head(_)
 
@@ -52,7 +52,7 @@ validator {
           amount:ref_amount, ..
         }: Metadata = ref_datum
 
-        helper.correct_amount(txOut, ref_amount) 
+        unlearn.correct_amount(txOut, ref_amount) 
 
       }
 

@@ -5,7 +5,7 @@ use aiken/list
 use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, ScriptPurpose, Spend}
 use aiken/transaction/value
 use aiken/transaction/credential
-use unlearn/helper
+use unlearn
 
 type Metadata {
   name:     ByteArray,
@@ -26,7 +26,7 @@ validator {
         
       expect Spend(own_reference) = ctx.purpose
 
-      let own_input = helper.own_validator_input_utxo(txInfo.inputs, own_reference)
+      let own_input = unlearn.own_validator_input_utxo(txInfo.inputs, own_reference)
 
       let Output { address: in_address, value: in_value, ..} = own_input
 
@@ -46,6 +46,6 @@ validator {
         policy == "" && amt == -1
       })
 
-      helper.valEq(burn_ass, value.flatten(out_value))
+      unlearn.valEq(burn_ass, value.flatten(out_value))
     }
   }
