@@ -33,21 +33,14 @@ validator(base_pid: ByteArray, base_name: ByteArray) {
 
     let Output { address: base_address, value: in_value, ..} = input.output
 
-    expect [own_output] = list.filter(outputs, fn(output: Output) { 
-      output.address == base_address
-    })
-
     let Output { datum: in_datum, ..} = input.output
-    let Output { datum: out_datum, value: out_value, .. } = own_output
 
     expect InlineDatum(base_datum_b4) = in_datum
-    expect InlineDatum(base_datum_after) = out_datum
 
     expect Base { name: name_b4, count: count_b4 }: Base = base_datum_b4
-    expect Base { name: name_after, count: count_after }: Base = base_datum_after
 
 
-    name_b4 == name_after && count_b4 == count_after + 1 && unlearn.named_correct(value.flatten(mint), bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))), own_policy)
+    unlearn.named_correct(value.flatten(mint), bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))), own_policy)
 
   }
 }

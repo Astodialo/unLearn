@@ -30,10 +30,6 @@ validator {
 
       let Output { address: in_address, value: in_value, ..} = own_input
 
-      let credential = in_address.payment_credential 
-
-      expect credential.ScriptCredential(own_validator_hash) = credential
-
       expect [own_output] = list.filter(txOut, fn(output: Output) { 
         output.address == in_address
       })
