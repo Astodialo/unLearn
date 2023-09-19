@@ -6,6 +6,8 @@ use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, O
 use aiken/transaction/value
 use aiken/transaction/credential
 
+pub const master_token_name = "unArxh"  
+
 pub fn valEq(ass: (value.PolicyId, value.AssetName, Int), val: List<(value.PolicyId, value.AssetName, Int)>) -> Bool {
   list.any(val, fn(ref_ass: (value.PolicyId, value.AssetName, _)) { 
     let (policy, name, _) = ass
@@ -44,4 +46,28 @@ pub fn named_correct(values: List<(value.PolicyId, value.AssetName, Int)>, name:
     pid == own_policy && ((asset == bytearray.concat(name, "_R")) || (asset == bytearray.concat(name, "_Claim")) || (asset == name) ) && amt == 1 
   })
 }
-    
+        
+pub fn value_contains_master_token(val: value.Value, own_policy: value.PolicyId) -> Bool {
+  expect [(token_name, quantity)] =
+    val
+      |> value.tokens(own_policy)
+      |> dict.to_list()
+
+  token_name == master_token_name && quantity == 1
+}
+
+pub fn value_has_only_master_and_lovelace(val: value.Value, own_policy: value.PolicyId) -> Bool {
+  expect [(policy1, amount1), (policy2, amount2)] = val
+    |> value.to_dict
+    |> dict.to_list()
+
+  if policy1 == value.ada_policy_id {
+    expect [(token_name, quantity)] = amount2 |> dict.to_list()
+
+    policy2 == own_policy && quantity == 1 && token_name == master_token_name
+  } else {
+    expect [(token_name, quantity)] = amount1 |> dict.to_list()
+
+    policy1 == own_policy && quantity == 1 && token_name == master_token_name
+  }
+}
