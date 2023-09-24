@@ -1,4 +1,4 @@
-import { Lucid, Kupmios, MintingPolicy, SpendingValidator, fromText, Data, TxHash, sign } from "lucid-cardano";
+import { Lucid, Kupmios, MintingPolicy, SpendingValidator, fromText, Data, TxHash, sign, Constr } from "lucid-cardano";
 import { prop_mint_code, updater_code, voting_code } from "../lucid/params"
 
 const lucid = await Lucid.new(
@@ -77,9 +77,11 @@ export async function mint_proposal(prop: string, amt: bigint): Promise<TxHash> 
     amount: amt,
   }; 
 
+  const redeemer = Data.to(new Constr(0, []))
+
   const tx = await lucid
     .newTx()
-    .mintAssets({ [unit]: 1n, [unit + fromText("_R")]: 1n, [unit + fromText(_Claim)]: 1n})
+    .mintAssets({ [unit]: 1n, [unit + fromText("_R")]: 1n, [unit + fromText("_Claim")]: 1n}, redeemer)
     .payToContract(updater_address, Data.to(prop_datum, Proposal), {unit: 1n} )
     .payToAddress(voting_address, {[unit + fromText("_R")]: 1n})
     .payToAddress(address, {[unit + fromText("_Claim")]: 1n})
