@@ -12,8 +12,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@meshsdk/core": "^1.5.1",
-    "@meshsdk/react": "^1.1.6",
+    "@meshsdk/core": "^1.5.2",
+    "@meshsdk/react": "^1.1.7",
     "next": "12.3.1",
     "react": "18.2.0",
     "react-dom": "18.2.0"
