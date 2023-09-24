@@ -1,0 +1,26 @@
+{
+  "module": "./esm/mod.js",
+  "main": "./esm/mod.js",
+  "types": "./types/mod.d.ts",
+  "name": "lucid-cardano",
+  "version": "0.10.7",
+  "license": "MIT",
+  "author": "Alessandro Konrad",
+  "description": "Lucid is a library, which allows you to create Cardano transactions and off-chain code for your Plutus contracts in JavaScript, Deno and Node.js.",
+  "repository": "https://github.com/spacebudz/lucid",
+  "engines": {
+    "node": ">=14"
+  },
+  "dependencies": {
+    "node-fetch": "^3.2.3",
+    "@peculiar/webcrypto": "^1.4.0",
+    "ws": "^8.10.0"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./esm/mod.js",
+      "types": "./types/mod.d.ts"
+    }
+  }
+}

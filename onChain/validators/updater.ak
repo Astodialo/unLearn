@@ -10,7 +10,6 @@ use unlearn
 type Metadata {
   name:     ByteArray,
   proposal: ByteArray,
-  answers:  ByteArray,
   results:  ByteArray,
   state:    ByteArray,
   amount:   Int
