@@ -17,6 +17,7 @@ import {
   bankWalletAddress,
   idanikoMetadata,
   costLovelace,
+  minting_code
 } from "../../config/mint";
 import { prop_mint_code }  from "../../../lucid/params"
 
@@ -60,7 +61,7 @@ export default async function handler(
 
   const genesis_utxo = "55ffec61cace754fae6ad881c38ee99d6492e413d60b7609a3a1467fae9a7ee9"
   const mintingScript: PlutusScript = {
-    code: prop_mint_code,
+    code: minting_code,
     version: 'V2',
   };
   
