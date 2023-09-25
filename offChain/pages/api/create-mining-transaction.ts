@@ -58,17 +58,18 @@ export default async function handler(
 
   const appWalletAddress = appWallet.getPaymentAddress();
 
+  const genesis_utxo = "55ffec61cace754fae6ad881c38ee99d6492e413d60b7609a3a1467fae9a7ee9"
   const mintingScript: PlutusScript = {
     code: prop_mint_code,
     version: 'V2',
   };
+  
   const minting_addr = resolvePlutusScriptAddress(mintingScript)
 
 
   /**
    * TODO: Here you want to select one of your NFT that has not been minted
    */
-
   const [unArxhUTXO] = await koios.fetchAddressUTxOs(minting_addr, unArxhUnit)
 
   const datumMetadataCBOR = unArxhUTXO.output.plutusData;
@@ -102,7 +103,7 @@ export default async function handler(
 
   // Proposal NFT 
   
-  const assetIdPrefix = "proposal-"
+  const assetIdPrefix = "proposal_"
   const assetName = `${assetIdPrefix}${count}`;
 
   //  --Datum--
@@ -120,9 +121,13 @@ export default async function handler(
     alternative: 0,
     fields: [datumN, datumP , datumR, datumState, datumAmount]
   };
-  const redeemer = { 
+  const mint_redeemer = { 
     data: { alternative: 0, fields: []},
   };
+  const genesis_redeemer = {
+    data: { alternative: 1, fields: []},
+  }
+
   // Minting for reference NFT to be sent and locked in the validator with the datum containing the data of the progress. At this stage the fields Name, Type, Question, State are filled. The other are null.  
   const assetQ: Mint = {
     assetName: assetName,
@@ -165,12 +170,21 @@ export default async function handler(
 
   const selectedUtxos = keepRelevant(outputsMap, utxos, '15000000',);
 
-  const tx = new Transaction({ initiator: appWallet });
-  tx.setTxInputs(selectedUtxos.concat(unArxhUTXO));
-  tx.mintAsset(mintingScript, assetQ, redeemer);
-  tx.mintAsset(mintingScript, assetR, redeemer);
-  tx.mintAsset(mintingScript, assetClaim, redeemer);
-  tx.sendAssets(
+  const genesis_tx = new Transaction({ initiator: appWallet });
+  genesis_tx.setTxInputs([genesis_utxo]);
+  genesis_tx.mintAsset(mintingScript, unArxh, genesis_redeemer);
+  genesis_tx.setChangeAddress(recipientAddress);
+
+  const genesis_unsignedTx = await genesis_tx.build();
+  const genesisMetadata = Transaction.readMetadata(genesis_unsignedTx);
+  const genesis_maskedTx = Transaction.maskMetadata(genesis_unsignedTx);
+
+  const mint_tx = new Transaction({ initiator: appWallet });
+  mint_tx.setTxInputs(selectedUtxos.concat(unArxhUTXO));
+  mint_tx.mintAsset(mintingScript, assetQ, mint_redeemer);
+  mint_tx.mintAsset(mintingScript, assetR, mint_redeemer);
+  //mint_tx.mintAsset(mintingScript, assetClaim, mint_redeemer);
+  mint_tx.sendAssets(
     { address: minting_addr,
       datum: {
         value: unArxhMetadata,
@@ -179,20 +193,20 @@ export default async function handler(
     },
     [{unit: unArxhUnit, quantity: "1",},]
   )
-  tx.sendLovelace(recipientAddress, costLovelace);
-  tx.setChangeAddress(recipientAddress);
+  mint_tx.sendLovelace(recipientAddress, costLovelace);
+  mint_tx.setChangeAddress(recipientAddress);
 
-  const unsignedTx = await tx.build();
+  const mint_unsignedTx = await mint_tx.build();
 
-  const originalMetadata = Transaction.readMetadata(unsignedTx);
+  const originalMetadata = Transaction.readMetadata(mint_unsignedTx);
 
   /**
    * TODO: Here you want to save the `originalMetadata` in a database with the `assetName`
    */
 
-  const maskedTx = Transaction.maskMetadata(unsignedTx);
+  const maskedTx = Transaction.maskMetadata(mint_unsignedTx);
 
   // In this starter template, we send `originalMetadata` to the frontend.
   // Not recommended, its better to save the `originalMetadata` in a database.
-  res.status(200).json({ unsignedTx, originalMetadata });
+  res.status(200).json({ mint_unsignedTx, genesis_unsignedTx, originalMetadata, genesisMetadata });
 }

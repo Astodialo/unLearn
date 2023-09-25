@@ -16,12 +16,12 @@ export default function Home() {
       const utxos = await wallet.getUtxos();
       const input = (document.getElementById("user-q") as HTMLInputElement).value;
 
-      const { unsignedTx, originalMetadata } = await createTransaction( recipientAddress,
+      const { mint_unsignedTx, genesis_unsignedTx, originalMetadata, genesisMetadata } = await createTransaction( recipientAddress,
         utxos,
         input
       );
 
-      const signedTx = await wallet.signTx(unsignedTx, true);
+      const signedTx = await wallet.signTx(mint_unsignedTx, true);
 
       const { appWalletSignedTx } = await signTransaction(
         signedTx,
@@ -37,6 +37,33 @@ export default function Home() {
     setLoading(false);
   }
 
+  async function genesisMining() {
+    setLoading(true);
+    try {
+      const recipientAddress = await wallet.getChangeAddress();
+      const utxos = await wallet.getUtxos();
+      const input = (document.getElementById("user-q") as HTMLInputElement).value;
+
+      const { mint_unsignedTx, genesis_unsignedTx, originalMetadata, genesisMetadata } = await createTransaction( recipientAddress,
+        utxos,
+        input
+      );
+
+      const signedTx = await wallet.signTx(genesis_unsignedTx, true);
+
+      const { appWalletSignedTx } = await signTransaction(
+        signedTx,
+        genesisMetadata
+      );
+
+      const txHash = await wallet.submitTx(appWalletSignedTx);
+
+      setTxHash(txHash);
+    } catch (error) {
+      console.error(error);
+    }
+    setLoading(false);
+  }
   return (
     <div className="container">
       <Head>
@@ -65,6 +92,13 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => startMining()}
+                disabled={loading}
+              >
+                {loading ? "Creating transaction..." : "Mint Proposal"}
+              </button>
+              <button
+                type="button"
+                onClick={() => genesisMining()}
                 disabled={loading}
               >
                 {loading ? "Creating transaction..." : "Mint Proposal"}
