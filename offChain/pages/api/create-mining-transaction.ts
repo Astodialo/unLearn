@@ -15,7 +15,6 @@ import type { Mint, Data, Unit, Quantity } from "@meshsdk/core";
 import { demoMnemonic } from "../../config/wallet";
 import {
   bankWalletAddress,
-  idanikoMetadata,
   costLovelace,
   minting_code
 } from "../../config/mint";
