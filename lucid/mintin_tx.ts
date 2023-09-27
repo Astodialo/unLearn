@@ -32,8 +32,18 @@ const { paymentCredential} = lucid.utils.getAddressDetails(
 );
 const address = lucid.wallet.address();
 
-const genesis_utxo = fromText("fc1b70ba8279ef492a6ef4411750c8b2a368fcef3f86224ce10a680b980ad630#0") 
+const Out_Ref_Schema = Data.Object({
+  transaction_id: Data.Bytes(),
+  output_index: Data.Integer(),
+});
 
+type Out_Ref = Data.Static<typeof Out_Ref_Schema>;
+const Out_Ref = Out_Ref_Schema as unknown as Out_Ref;
+
+const genesis_utxo: Out_Ref = Data.to({ 
+  transaction_id: fromText("fc1b70ba8279ef492a6ef4411750c8b2a368fcef3f86224ce10a680b980ad630#0"),
+  output_index: 0n 
+}, Out_Ref,);
 
 const minting_script: MintingPolicy = {
   type: "PlutusV2",
@@ -77,32 +87,44 @@ const Proposal_schema = Data.Object({
 type Proposal = Data.Static<typeof Proposal_schema>;
 const Proposal = Proposal_schema as unknown as Proposal;
 
+const Action = Data.Enum([
+  Data.Literal("Mintin"),
+  Data.Literal("Genesis"),
+]);
+
+type Action = Data.Static<typeof Action>;
+
 const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
 const unArxh = policyId + fromText("unArxh")
+
+const genesis_datum: UnArxh = {name: fromText("proposal"), count: 0n } 
+
 console.log(unArxh)
-export async function mint_proposal(prop: string, amt: bigint, action: string ): Promise<TxHash> {
+
+export async function mint_proposal(action: string ): Promise<TxHash> {
   const prop_datum: Proposal = {
     name: name + String(count),
-    proposal: prop,
+    proposal: fromText(""),
     results: fromText(""),
     state: fromText("INIT"),
-    amount: amt,
+    amount: 0n,
   }; 
   
   if (action == "genesis"){
-    const redeemer = Data.to(new Constr(1, []))
+    const redeemer: Action = Data.to<Action>("Genesis", Action)
 
     const tx = await lucid
       .newTx()
-      .mintAssets({ [unArxh]: 1n })
+      .mintAssets({ [unArxh]: 1n }, redeemer)
+      .payToAddressWithData(minting_address, {inline: Data.to(genesis_datum, UnArxh)}, {[unArxh]: 1n})
       .attachMintingPolicy(minting_script)
       .complete()
 
     const signedTx = await tx.sign().complet();
     const txHash = await signedTx.submit();
-    return txHash;
-  } 
+    return txHash
+  }
 
   const [utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh) 
   const {name, count}: UnArxh = await lucid.datumOf(utxo) 
@@ -112,11 +134,11 @@ export async function mint_proposal(prop: string, amt: bigint, action: string ):
   const nu_count = count + 1n 
   const nu_datum = {name, count: nu_count}
 
-  const redeemer = Data.to(new Constr(0, []))
+  const mint_redeemer: Action = Data.to<Action>("Mintin", Action)
 
-  const tx = await lucid
+  const mint_tx = await lucid
     .newTx()
-    .mintAssets({ [unit]: 1n, [unit + fromText("_R")]: 1n, [unit + fromText("_Claim")]: 1n}, redeemer)
+    .mintAssets({ [unit]: 1n, [unit + fromText("_R")]: 1n, [unit + fromText("_Claim")]: 1n}, mint_redeemer)
     .payToContract(updater_address, Data.to(prop_datum, Proposal), {unit: 1n} )
     .payToAddress(address, {[unit + fromText("_R")]: 1n})
     .payToAddress(address, {[unit + fromText("_Claim")]: 1n})
@@ -124,12 +146,8 @@ export async function mint_proposal(prop: string, amt: bigint, action: string ):
     .attachMintingPolicy(minting_script)
     .complete()
 
-  const signedTx = await tx.sign().complete();
+  const mint_signedTx = await mint_tx.sign().complete();
 
-  const txHash = await signedTx.submit();
-
-  return txHash;
-
+  const mint_txHash = await mint_signedTx.submit();
+  return mint_txHash
 }
-
-

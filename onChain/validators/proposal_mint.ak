@@ -80,22 +80,22 @@ validator(utxo_ref: OutputReference ) {
         expect State { name: name_b4, count: count_b4 }: State = base_datum_b4
         expect State { name: name_after, count: count_after }: State = base_datum_after
 
-        expect [updater_output] =  list.filter(outputs, fn(output: Output) {
-        output.address == updater_addr
-        })
-        let Output { datum: update_datum, value: out_value, .. } = updater_output
-        expect InlineDatum(updt_datum) = update_datum
+        //expect [updater_output] =  list.filter(outputs, fn(output: Output) {
+        //  output.address == updater_addr
+        //})
+        //let Output { datum: update_datum, value: out_value, .. } = updater_output
+        //expect InlineDatum(updt_datum) = update_datum
        
-       expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
+        //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
 
 
         name_b4 == name_after &&
         count_b4 == count_after + 1 &&
-        unlearn.named_correct(value.flatten(mint), bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))), own_policy) &&
-        name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
-        results == "" &&
-        state == "INIT" &&
-        amount == 0
+        unlearn.named_correct(value.flatten(mint), bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))), own_policy) 
+        //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
+        //results == "" &&
+        //state == "INIT" &&
+        //amount == 0
       }
     }
   }
