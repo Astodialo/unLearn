@@ -9,7 +9,6 @@ use aiken/transaction/credential
 use unlearn
 
 type State {
-  name: ByteArray,
   count: Int
 }
 
@@ -46,7 +45,7 @@ validator(utxo_ref: OutputReference ) {
 
         expect output_state: State = output_datum
 
-        let initial_state =  State { name: "proposal", count: 0}
+        let initial_state =  State {count: 0}
 
         (initial_state == output_state)?
       }
@@ -77,8 +76,8 @@ validator(utxo_ref: OutputReference ) {
         expect InlineDatum(base_datum_b4) = in_datum
         expect InlineDatum(base_datum_after) = out_datum
 
-        expect State { name: name_b4, count: count_b4 }: State = base_datum_b4
-        expect State { name: name_after, count: count_after }: State = base_datum_after
+        expect State { count: count_b4 }: State = base_datum_b4
+        expect State { count: count_after }: State = base_datum_after
 
         //expect [updater_output] =  list.filter(outputs, fn(output: Output) {
         //  output.address == updater_addr
@@ -89,9 +88,8 @@ validator(utxo_ref: OutputReference ) {
         //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
 
 
-        name_b4 == name_after &&
         count_b4 == count_after + 1 &&
-        unlearn.named_correct(value.flatten(mint), bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))), own_policy) 
+        unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy) 
         //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
         //results == "" &&
         //state == "INIT" &&

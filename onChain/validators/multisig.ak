@@ -12,12 +12,3 @@ type MintingState {
   Genesis
 }
 
-validator(utxo_ref: OutputReference, singers: List<ByteArray>  ) {
-  fn prop_mint(state: MintingState, ctx: ScriptContext) -> Bool {
-    when state is {
-      Genesis -> {
-        expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
-        let Transaction {inputs, outputs, mint, }
-        
-        todo
-      }

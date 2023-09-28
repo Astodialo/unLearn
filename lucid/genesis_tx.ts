@@ -4,6 +4,7 @@ import {
   MintingPolicy,
   SpendingValidator, 
   fromText, 
+  applyDoubleCborEncoding,
   Data, 
   TxHash, 
   sign, 
@@ -33,27 +34,21 @@ const { paymentCredential} = lucid.utils.getAddressDetails(
 );
 const address = lucid.wallet.address();
 
-const Out_Ref_Schema = Data.Object({
-  transaction_id: Data.Bytes(),
-  output_index: Data.Integer(),
-});
+const genesis_utxo = new Constr(0, [
+  new Constr(0, [fromText("fc1b70ba8279ef492a6ef4411750c8b2a368fcef3f86224ce10a680b980ad630#0"),
+]),0n ,])
 
-type Out_Ref = Data.Static<typeof Out_Ref_Schema>;
-const Out_Ref = Out_Ref_Schema as unknown as Out_Ref;
-
-const genesis_utxo: Out_Ref = Data.to({ 
-  transaction_id: fromText("fc1b70ba8279ef492a6ef4411750c8b2a368fcef3f86224ce10a680b980ad630#0"),
-  output_index: 0n 
-}, Out_Ref,);
-
+const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint");
 
 const minting_script: MintingPolicy = {
   type: "PlutusV2",
   script: applyParamsToScript(
-    blueprint.validators[0].compiledCode,
+    prop_mint?.compiledCode,
     [genesis_utxo],
   ),
 }; 
+
+console.log(minting_script)
 
 const minting_address = lucid.utils.validatorToAddress(minting_script)
 
@@ -69,24 +64,14 @@ const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
 const unArxh = policyId + fromText("unArxh")
 
-const Action = Data.Enum([
-  Data.Literal("Mintin"),
-  Data.Literal("Genesis"),
-]);
-
-type Action = Data.Static<typeof Action>;
-
-const genesis_datum: UnArxh = {name: fromText("proposal"), count: 0n } 
-
-const redeemer: Action = Data.to<Action>("Genesis", Action)
-
-console.log(redeemer)
+const genesis_redeemer = Data.to(new Constr(1, []));
+const genesis_datum = Data.to(new Constr(0, [0n]));
 
 const tx = await lucid
   .newTx()
-  .mintAssets({ [unArxh]: 1n }, redeemer)
-  .payToAddressWithData(minting_address, {inline: Data.to(genesis_datum, UnArxh)}, {[unArxh]: 1n, lovelace: 10000000n, })
-  .attachMintingPolicy(minting_script)
+  .mintAssets({ [unArxh]: 1n }, genesis_redeemer,)
+  .payToAddressWithData(minting_address, {inline: genesis_datum}, {[unArxh]: 1n, lovelace: 10000000n, })
+  .attachMintingPolicy( minting_script,)
   .complete()
 
 const signedTx = await tx.sign().complete();
