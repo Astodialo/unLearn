@@ -25,7 +25,7 @@ type Metadata {
   amount:   Int
 }
 
-validator(utxo_ref: OutputReference ) {
+validator(utxo_ref: OutputReference) {
   fn prop_mint(state: MintingState, ctx: ScriptContext) -> Bool {
     when state is {
       Genesis -> {

@@ -66,7 +66,7 @@ const unArxh = policyId + fromText("unArxh")
 
 const genesis_redeemer = Data.to(new Constr(1, []));
 const genesis_datum = Data.to(new Constr(0, [0n]));
-
+console.log(minting_script)
 const tx = await lucid
   .newTx()
   .mintAssets({ [unArxh]: 1n }, genesis_redeemer,)
@@ -76,5 +76,11 @@ const tx = await lucid
 
 const signedTx = await tx.sign().complete();
 const txHash = await signedTx.submit();
+
+const genesis = "export const mint_script = \"" + minting_script.script + "\"" + "\n"
+              + "export const genesis_utxo_hash = \"" + utxo.txHash + "\"" + "\n" 
+              + "export const genesis_utxo_index = \"" + utxo.outputIndex + "\"" + "\n" 
+
+await Deno.writeTextFile("genesis.ts", genesis);
 
 console.log(txHash);

@@ -4,18 +4,22 @@ import {
   MintingPolicy,
   SpendingValidator, 
   fromText, 
+  applyDoubleCborEncoding,
   Data, 
   TxHash, 
   sign, 
   Constr, 
   fromHex, 
   toHex,
+
+  toLabel,
   OutRef,
   Blockfrost,
   applyParamsToScript
 } from "https://deno.land/x/lucid@0.10.7/mod.ts";
 import blueprint from "../onChain/plutus.json" assert { type: "json"}
 import * as cbor from "https://deno.land/x/cbor@v1.4.1/index.js";
+import { mint_script, genesis_utxo_hash, genesis_utxo_index} from "./genesis.ts"
 
 const lucid = await Lucid.new(
   new Blockfrost(
@@ -32,122 +36,77 @@ const { paymentCredential} = lucid.utils.getAddressDetails(
 );
 const address = lucid.wallet.address();
 
-const Out_Ref_Schema = Data.Object({
-  transaction_id: Data.Bytes(),
-  output_index: Data.Integer(),
-});
+const genesis_utxo = new Constr(0, [
+  new Constr(0, [genesis_utxo_hash]),
+  BigInt(genesis_utxo_index),
+]);
 
-type Out_Ref = Data.Static<typeof Out_Ref_Schema>;
-const Out_Ref = Out_Ref_Schema as unknown as Out_Ref;
-
-const genesis_utxo: Out_Ref = Data.to({ 
-  transaction_id: fromText("fc1b70ba8279ef492a6ef4411750c8b2a368fcef3f86224ce10a680b980ad630#0"),
-  output_index: 0n 
-}, Out_Ref,);
+const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint")
+const treas = blueprint.validators.find((v) => v.title === "treasury.treasury")
+const updat = blueprint.validators.find((v) => v.title === "updater.updater")
 
 const minting_script: MintingPolicy = {
   type: "PlutusV2",
-  script: applyParamsToScript(
-    blueprint.validators[0].compiledCode,
-    [genesis_utxo],
-  ),
+  script: applyDoubleCborEncoding(mint_script) //applyParamsToScript(
+    //prop_mint?.compiledCode,
+    //[genesis_utxo]),
 }; 
 
 const treasury_script: SpendingValidator = {
   type: "PlutusV2",
-  script: blueprint.validators[1].compiledCode,
+  script: treas?.compiledCode ,
 };
 
 const updater_script: SpendingValidator = { 
   type: "PlutusV2",
-  script: blueprint.validators[2].compiledCode,
+  script: updat?.compiledCode,
 };
 
 const minting_address = lucid.utils.validatorToAddress(minting_script)
 const treasury_address = lucid.utils.validatorToAddress(treasury_script)
 const updater_address = lucid.utils.validatorToAddress(updater_script)
 
-const UnArxh_schema = Data.Object({
-  name: Data.Bytes(),
-  count: Data.Integer(),
-});
-
-type UnArxh = Data.Static<typeof UnArxh_schema>;
-const UnArxh = UnArxh_schema as unknown as UnArxh;
-
-const Proposal_schema = Data.Object({
-  name: Data.Bytes(),
-  proposal: Data.Bytes(),
-  results: Data.Bytes(), 
-  state: Data.Bytes(),
-  amount: Data.Integer(),
-});
-
-
-type Proposal = Data.Static<typeof Proposal_schema>;
-const Proposal = Proposal_schema as unknown as Proposal;
-
-const Action = Data.Enum([
-  Data.Literal("Mintin"),
-  Data.Literal("Genesis"),
-]);
-
-type Action = Data.Static<typeof Action>;
-
 const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
 const unArxh = policyId + fromText("unArxh")
 
-const genesis_datum: UnArxh = {name: fromText("proposal"), count: 0n } 
+const [utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh) 
 
-console.log(unArxh)
+const datum = Data.from(utxo.datum);
+const count = datum.fields[0]
 
-export async function mint_proposal(action: string ): Promise<TxHash> {
-  const prop_datum: Proposal = {
-    name: name + String(count),
-    proposal: fromText(""),
-    results: fromText(""),
-    state: fromText("INIT"),
-    amount: 0n,
-  }; 
-  
-  if (action == "genesis"){
-    const redeemer: Action = Data.to<Action>("Genesis", Action)
+const unit = policyId + fromText("proposal_" + String(count))
+const res_unit = policyId + fromText("proposal_" + String(count) + "_R")
+const claim_unit = policyId + fromText("proposal_" + String(count) + "_Claim")
 
-    const tx = await lucid
-      .newTx()
-      .mintAssets({ [unArxh]: 1n }, redeemer)
-      .payToAddressWithData(minting_address, {inline: Data.to(genesis_datum, UnArxh)}, {[unArxh]: 1n})
-      .attachMintingPolicy(minting_script)
-      .complete()
+const prop_datum = Data.to(new Constr(0, [
+  fromText("proposal_" + String(count)),
+  fromText(" "),
+  fromText(" "),
+  fromText("INIT"),
+  0n,
+])) 
 
-    const signedTx = await tx.sign().complet();
-    const txHash = await signedTx.submit();
-    return txHash
-  }
+console.log(Data.from(prop_datum))
 
-  const [utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh) 
-  const {name, count}: UnArxh = await lucid.datumOf(utxo) 
+const nu_count = count + 1n 
+const nu_datum = Data.to(new Constr(0, [nu_count]));
 
-  const unit = policyId + name + String(count)
+const mint_redeemer = Data.to(new Constr(0, []));
 
-  const nu_count = count + 1n 
-  const nu_datum = {name, count: nu_count}
+const mint_tx = await lucid
+  .newTx()
+  .readFrom([utxo])
+  .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n}, mint_redeemer)
+  .payToContract(updater_address, prop_datum, {unit: 1n} )
+  .payToAddress(address, {[res_unit]: 1n})
+  .payToAddress(address, {[claim_unit]: 1n})
+  .payToContract(minting_address, nu_datum, {unArxh: 1n})
+  .attachMintingPolicy(minting_script)
+  .complete()
 
-  const mint_redeemer: Action = Data.to<Action>("Mintin", Action)
+const mint_signedTx = await mint_tx.sign().complete();
 
-  const mint_tx = await lucid
-    .newTx()
-    .mintAssets({ [unit]: 1n, [unit + fromText("_R")]: 1n, [unit + fromText("_Claim")]: 1n}, mint_redeemer)
-    .payToContract(updater_address, Data.to(prop_datum, Proposal), {unit: 1n} )
-    .payToAddress(address, {[unit + fromText("_R")]: 1n})
-    .payToAddress(address, {[unit + fromText("_Claim")]: 1n})
-    .payToContract(minting_address, Data.to(nu_datum, UnArxh), {unArxh: 1n})
-    .attachMintingPolicy(minting_script)
-    .complete()
+const mint_txHash = await mint_signedTx.submit();
+console.log(mint_txHash)
 
-  const mint_signedTx = await mint_tx.sign().complete();
-
-  const mint_txHash = await mint_signedTx.submit();
-  return mint_txHash
-}
