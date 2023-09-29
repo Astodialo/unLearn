@@ -33,10 +33,12 @@ const { paymentCredential} = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
 );
 const address = lucid.wallet.address();
+const [utxo] = await lucid.wallet.getUtxos();
 
 const genesis_utxo = new Constr(0, [
-  new Constr(0, [fromText("fc1b70ba8279ef492a6ef4411750c8b2a368fcef3f86224ce10a680b980ad630#0"),
-]),0n ,])
+  new Constr(0, [utxo.txHash]),
+  BigInt(utxo.outputIndex),
+]);
 
 const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint");
 
@@ -47,8 +49,6 @@ const minting_script: MintingPolicy = {
     [genesis_utxo],
   ),
 }; 
-
-console.log(minting_script)
 
 const minting_address = lucid.utils.validatorToAddress(minting_script)
 
@@ -76,4 +76,5 @@ const tx = await lucid
 
 const signedTx = await tx.sign().complete();
 const txHash = await signedTx.submit();
+
 console.log(txHash);
