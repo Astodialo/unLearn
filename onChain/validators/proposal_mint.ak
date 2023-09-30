@@ -88,8 +88,8 @@ validator(utxo_ref: OutputReference) {
         //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
 
 
-        count_b4 == count_after + 1 &&
-        unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy) 
+        count_b4 == count_after + 1 //&& 
+        //unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy) 
         //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
         //results == "" &&
         //state == "INIT" &&

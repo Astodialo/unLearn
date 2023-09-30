@@ -27,7 +27,7 @@ const lucid = await Lucid.new(
   "Preprod",
 );
 
-const wallet = await lucid.selectWalletFromPrivateKey(await Deno.readTextFile("./key.sk"));
+const wallet = await lucid.selectWalletFromPrivateKey(await Deno.readTextFile("./stuff/key.sk"));
 
 const { paymentCredential} = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
@@ -66,7 +66,9 @@ const unArxh = policyId + fromText("unArxh")
 
 const genesis_redeemer = Data.to(new Constr(1, []));
 const genesis_datum = Data.to(new Constr(0, [0n]));
+
 console.log(minting_script)
+
 const tx = await lucid
   .newTx()
   .mintAssets({ [unArxh]: 1n }, genesis_redeemer,)
