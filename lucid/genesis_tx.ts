@@ -79,10 +79,16 @@ const tx = await lucid
 const signedTx = await tx.sign().complete();
 const txHash = await signedTx.submit();
 
-const genesis = "export const mint_script = \"" + minting_script.script + "\"" + "\n"
-              + "export const genesis_utxo_hash = \"" + utxo.txHash + "\"" + "\n" 
-              + "export const genesis_utxo_index = \"" + utxo.outputIndex + "\"" + "\n" 
+const genesis = "{\n  \"validator\": \"" + minting_script.script + "\"," + "\n"
+              + "  \"validatorHash\": \"" +  lucid.utils.validatorToScriptHash(minting_script) + "\"," + "\n"
+              + "  \"validatorAddress\": \"" + minting_address + "\"," + "\n"
+              + "  \"outRef\": { \n"
+              + "    \"txHash\": \"" + utxo.txHash + "\"," + "\n" 
+              + "    \"index\": " + utxo.outputIndex + "\n" 
+              + "  }\n"
+              + "}"
 
-await Deno.writeTextFile("genesis.ts", genesis);
+
+await Deno.writeTextFileSync("./stuff/genesis.json", genesis); 
 
 console.log(txHash);

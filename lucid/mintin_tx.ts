@@ -19,7 +19,6 @@ import {
 } from "https://deno.land/x/lucid@0.10.7/mod.ts";
 import blueprint from "../onChain/plutus.json" assert { type: "json"}
 import * as cbor from "https://deno.land/x/cbor@v1.4.1/index.js";
-import { mint_script, genesis_utxo_hash, genesis_utxo_index} from "./genesis.ts"
 
 const lucid = await Lucid.new(
   new Blockfrost(
@@ -29,16 +28,28 @@ const lucid = await Lucid.new(
   "Preprod",
 );
 
+type Genesis = {
+  validator: string;
+  validatorHash: string;
+  validatorAddress: string;
+  outRef: { txHash: string; index: number };
+};
+
+const genesisFile = Deno.readTextFileSync(`./stuff/genesis.json`);
+
+const {validator, validatorHash, validatorAddress, outRef}: Genesis = JSON.parse(genesisFile); 
+
 const wallet = await lucid.selectWalletFromPrivateKey(await Deno.readTextFile("./stuff/key.sk"));
 
 const { paymentCredential} = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
 );
+
 let address = await lucid.wallet.address();
 
 const genesis_utxo = new Constr(0, [
-  new Constr(0, [genesis_utxo_hash]),
-  BigInt(genesis_utxo_index),
+  new Constr(0, [outRef.txHash]),
+  BigInt(outRef.index),
 ]);
 
 const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint")
@@ -74,7 +85,7 @@ const [utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh)
 
 let unArxh_datum = Data.from(utxo.datum!) as Constr<bigint>;
  
-const count = unArxh_datum.fields[0] as bigint;
+let count = unArxh_datum.fields[0] as bigint;
 
 const unit = policyId + fromText("proposal_" + String(count))
 const res_unit = policyId + fromText("proposal_" + String(count) + "_R")
@@ -88,33 +99,35 @@ const prop_datum = Data.to(new Constr(0, [
   0n,
 ])); 
 
-const nu_count = count + 1n 
-const nu_datum = Data.to(new Constr(0, [nu_count]));
+const nu_datum = Data.to(new Constr(0, [count + 1n]));
 
+const genesis_redeemer = Data.to(new Constr(1, []))
 const mint_redeemer = Data.to(new Constr(0, []));
 
-const addr_utxos = await lucid.utxosAt(address);
-
+console.log("old unArxh datum:")
 console.log(unArxh_datum)
+console.log("new unArxh datum:") 
 console.log(Data.from(nu_datum))
+console.log("proposal datum:") 
 console.log(Data.from(prop_datum))
+console.log("minting redeemer:")
 console.log(Data.from(mint_redeemer))
-console.log([unArxh, unit, res_unit, claim_unit])
-console.log(utxo)
-console.log(utxo.address)
+console.log("minting addr:")
 console.log(minting_address)
+console.log("updater script addr:")
 console.log(updater_address)
+console.log("wallet addr:") 
 console.log(address)
 
 const mint_tx = await lucid
   .newTx()
   .collectFrom([utxo], mint_redeemer)
-  .payToAddressWithData(minting_address, { inline: nu_datum }, {[unArxh]: 1n, lovelace: 1_000_000n})
-  //.mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
-  //.payToAddressWithData(updater_address, { inline: prop_datum}, {[unit]: 1n, lovelace: 1_000_000n} )
-  //.payToAddress(address, {[res_unit]: 1n, lovelace: 1_000_000n})
-  //.payToAddress(address, {[claim_unit]: 1n, lovelace: 1_000_000n})
-  .attachMintingPolicy(minting_script)
+  .payToAddressWithData(minting_address, { inline: nu_datum }, {[unArxh]: 1n})
+  .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
+  .payToAddressWithData(updater_address, { inline: prop_datum}, {[unit]: 1n,} )
+  .payToAddress(address, {[res_unit]: 1n,})
+  .payToAddress(address, {[claim_unit]: 1n,})
+  .attachSpendingValidator(minting_script)
   .complete()
 
 console.log(mint_tx);

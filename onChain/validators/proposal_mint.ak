@@ -54,23 +54,19 @@ validator(utxo_ref: OutputReference) {
         let Transaction {inputs, outputs, mint, ..} = txInfo
         let mint = value.from_minted_value(mint)
 
-        expect Some(input) = list.find(inputs, fn(input) -> Bool {
-          expect Some(ass) = input.output.value
-          |> value.flatten(_)
-          |> list.find(_, fn(ass: (value.PolicyId, value.AssetName, Int)) -> Bool {
-            let (input_pid, input_name, input_q) = ass
-
-            input_pid == own_policy && input_name == unlearn.master_token_name && input_q == 1
-          }) 
-       
-          True
+        expect Some(input) = list.find(inputs, fn(input) {
+          let q = value.quantity_of(input.output.value, own_policy, unlearn.master_token_name,)
+          q == 1 
         })
 
         let Output { address: in_address, value: in_value, datum: in_datum, ..} = input.output
-        expect [own_output] = list.filter(outputs, fn(output: Output) { 
-          output.address == in_address
+        expect Some(output) = list.find(outputs, fn(output: Output) { 
+          let q = value.quantity_of(output.value, own_policy, unlearn.master_token_name,)
+
+          q == 1
         })
-        let Output { datum: out_datum, value: out_value, .. } = own_output
+
+        let Output { datum: out_datum, value: out_value, .. } = output
 
 
         expect InlineDatum(base_datum_b4) = in_datum
@@ -88,7 +84,7 @@ validator(utxo_ref: OutputReference) {
         //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
 
 
-        count_b4 == count_after + 1 //&& 
+        count_b4 + 1 == count_after   //&& 
         //unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy) 
         //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
         //results == "" &&
