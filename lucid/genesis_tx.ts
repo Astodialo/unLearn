@@ -64,7 +64,7 @@ const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
 const unArxh = policyId + fromText("unArxh")
 
-const genesis_redeemer = Data.to(new Constr(1, []));
+const genesis_redeemer = Data.to(new Constr(0, []));
 const genesis_datum = Data.to(new Constr(0, [0n]));
 
 console.log(minting_script)

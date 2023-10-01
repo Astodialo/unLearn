@@ -13,8 +13,8 @@ type State {
 }
 
 type MintingState {
-  Mintin
   Genesis
+  Mintin
 }
 
 type Metadata {

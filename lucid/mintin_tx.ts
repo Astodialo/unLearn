@@ -101,33 +101,32 @@ const prop_datum = Data.to(new Constr(0, [
 
 const nu_datum = Data.to(new Constr(0, [count + 1n]));
 
-const genesis_redeemer = Data.to(new Constr(1, []))
-const mint_redeemer = Data.to(new Constr(0, []));
+const mint_redeemer = Data.to(new Constr(1, []));
 
-console.log("old unArxh datum:")
-console.log(unArxh_datum)
-console.log("new unArxh datum:") 
-console.log(Data.from(nu_datum))
-console.log("proposal datum:") 
-console.log(Data.from(prop_datum))
 console.log("minting redeemer:")
 console.log(Data.from(mint_redeemer))
-console.log("minting addr:")
+console.log("\nold unArxh datum:")
+console.log(unArxh_datum)
+console.log("\nnew unArxh datum:") 
+console.log(Data.from(nu_datum))
+console.log("\nproposal datum:") 
+console.log(Data.from(prop_datum))
+console.log("\nminting addr:")
 console.log(minting_address)
-console.log("updater script addr:")
+console.log("\nupdater script addr:")
 console.log(updater_address)
-console.log("wallet addr:") 
+console.log("\nwallet addr:") 
 console.log(address)
 
 const mint_tx = await lucid
   .newTx()
   .collectFrom([utxo], mint_redeemer)
-  .payToAddressWithData(minting_address, { inline: nu_datum }, {[unArxh]: 1n})
-  .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
-  .payToAddressWithData(updater_address, { inline: prop_datum}, {[unit]: 1n,} )
-  .payToAddress(address, {[res_unit]: 1n,})
-  .payToAddress(address, {[claim_unit]: 1n,})
-  .attachSpendingValidator(minting_script)
+  .payToAddressWithData(minting_address, {inline: nu_datum}, {[unArxh]: 1n, lovelace: 10000000n, })
+  //.mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
+  //.payToAddressWithData(updater_address, { inline: prop_datum}, {[unit]: 1n,} )
+  //.payToAddress(address, {[res_unit]: 1n,})
+  //.payToAddress(address, {[claim_unit]: 1n,})
+  .attachMintingPolicy(minting_script)
   .complete()
 
 console.log(mint_tx);
