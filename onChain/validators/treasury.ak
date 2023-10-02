@@ -1,10 +1,6 @@
-use aiken/builtin
-use aiken/dict
-use aiken/bytearray
 use aiken/list
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, ScriptPurpose, Spend}
+use aiken/transaction.{ScriptContext, Input, Output, InlineDatum }
 use aiken/transaction/value
-use aiken/transaction/credential
 use unlearn
 
 type Metadata {
@@ -24,7 +20,7 @@ validator {
           |> value.from_minted_value
           |> value.flatten
         
-        expect [burn_ass] = list.filter(txMint, fn(ass: (value.PolicyId, _, Int)) -> Bool {
+        expect [burn_ass] = list.filter(txMint, fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
             let (policy, _, amt) = ass
 
             policy == "" && amt == -1
@@ -32,12 +28,12 @@ validator {
 
         let ref_input_option = txInfo.reference_inputs
           |> list.map(_, fn(input: Input) {
-            let Input {output_reference, output} = input
+            let Input {output, ..} = input
 
             output
           })
           |> list.filter(_, fn(output: Output) -> Bool {
-            let Output {address, value, ..}  = output
+            let Output {value, ..}  = output
 
             unlearn.valEq(burn_ass, value.flatten(value)) 
           })

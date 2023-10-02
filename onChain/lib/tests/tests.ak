@@ -1,14 +1,7 @@
-use aiken/builtin
-use aiken/interval.{Interval, IntervalBound, NegativeInfinity, PositiveInfinity}
-use aiken/dict
-use aiken/bytearray
 use aiken/list
-use aiken/string
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, ScriptPurpose, Mint, Spend, NoDatum, OutputReference, TransactionId}
+use aiken/transaction.{Input, Output, InlineDatum, OutputReference, TransactionId}
 use assist/addresses
 use aiken/transaction/value
-use aiken/transaction/credential 
-use unlearn
 use tests/fake_tx 
 
 type State {

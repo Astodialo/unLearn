@@ -1,19 +1,7 @@
-use aiken/builtin
-use aiken/dict
-use aiken/bytearray
 use aiken/list
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, ScriptPurpose, Spend}
+use aiken/transaction.{ScriptContext, Output, Spend}
 use aiken/transaction/value
-use aiken/transaction/credential
 use unlearn
-
-type Metadata {
-  name:     ByteArray,
-  proposal: ByteArray,
-  results:  ByteArray,
-  state:    ByteArray,
-  amount:   Int
-}
 
 validator {
     fn updater(_datum, ctx: ScriptContext) -> Bool {
@@ -27,15 +15,15 @@ validator {
 
       let own_input = unlearn.own_validator_input_utxo(txInfo.inputs, own_reference)
 
-      let Output { address: in_address, value: in_value, ..} = own_input
+      let Output { address: in_address, ..} = own_input
 
       expect [own_output] = list.filter(txOut, fn(output: Output) { 
         output.address == in_address
       })
 
-      let Output { datum: out_datum, value: out_value, .. } = own_output
+      let Output { value: out_value, .. } = own_output
 
-      expect [burn_ass] = list.filter(txMint, fn(ass: (value.PolicyId, _, Int)) -> Bool {
+      expect [burn_ass] = list.filter(txMint, fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
         let (policy, _, amt) = ass
 
         policy == "" && amt == -1

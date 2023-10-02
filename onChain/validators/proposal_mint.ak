@@ -1,11 +1,9 @@
-use aiken/builtin
-use aiken/dict
 use aiken/bytearray
 use aiken/list
 use aiken/string
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, ScriptPurpose, Mint, Spend, OutputReference, find_input}
+use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, Mint, Spend, OutputReference, find_input}
 use aiken/transaction/value
-use aiken/transaction/credential 
+use aiken/transaction/credential
 use unlearn
 
 type State {
@@ -17,16 +15,8 @@ type MintingState {
   Mintin
 }
 
-type Metadata {
-  name:     ByteArray,
-  proposal: ByteArray,
-  results:  ByteArray,
-  state:    ByteArray,
-  amount:   Int
-}
-
 validator(utxo_ref: OutputReference) {
-  fn prop_mint(datum: State, redeemer: MintingState, ctx: ScriptContext) -> Bool {
+  fn prop_mint(_datum, redeemer: MintingState, ctx: ScriptContext) -> Bool {
     when redeemer is {
       Genesis -> {
         expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
