@@ -67,6 +67,8 @@ const unArxh = policyId + fromText("unArxh")
 const genesis_redeemer = Data.to(new Constr(0, []));
 const genesis_datum = Data.to(new Constr(0, [0n]));
 
+console.log(Data.from(genesis_redeemer))
+console.log(Data.from(genesis_datum))
 console.log(minting_script)
 
 const tx = await lucid

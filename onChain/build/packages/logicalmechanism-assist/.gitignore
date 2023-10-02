@@ -1,0 +1,5 @@
+# Aiken compilation artifacts
+artifacts/
+# Aiken's project working directory
+build/
+plutus.json

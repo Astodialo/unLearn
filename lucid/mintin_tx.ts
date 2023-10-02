@@ -120,12 +120,12 @@ console.log(address)
 
 const mint_tx = await lucid
   .newTx()
+  .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
   .collectFrom([utxo], mint_redeemer)
   .payToAddressWithData(minting_address, {inline: nu_datum}, {[unArxh]: 1n, lovelace: 10000000n, })
-  //.mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
-  //.payToAddressWithData(updater_address, { inline: prop_datum}, {[unit]: 1n,} )
-  //.payToAddress(address, {[res_unit]: 1n,})
-  //.payToAddress(address, {[claim_unit]: 1n,})
+  .payToAddressWithData(updater_address, { inline: prop_datum}, {[unit]: 1n,} )
+  .payToAddress(address, {[res_unit]: 1n,})
+  .payToAddress(address, {[claim_unit]: 1n,})
   .attachMintingPolicy(minting_script)
   .complete()
 
