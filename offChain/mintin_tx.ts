@@ -111,12 +111,6 @@ console.log("\nnew unArxh datum:")
 console.log(Data.from(nu_datum))
 console.log("\nproposal datum:") 
 console.log(Data.from(prop_datum))
-console.log("\nminting addr:")
-console.log(minting_address)
-console.log("\nupdater script addr:")
-console.log(updater_address)
-console.log("\nwallet addr:") 
-console.log(address)
 
 const mint_tx = await lucid
   .newTx()
@@ -129,7 +123,6 @@ const mint_tx = await lucid
   .attachMintingPolicy(minting_script)
   .complete()
 
-console.log(mint_tx);
 const mint_signedTx = await mint_tx.sign().complete();
 
 const mint_txHash = await mint_signedTx.submit();
