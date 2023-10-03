@@ -4,7 +4,7 @@ use aiken/transaction/value
 use unlearn
 
 validator {
-    fn updater(_datum, ctx: ScriptContext) -> Bool {
+    fn updater(_datum, _redeemer, ctx: ScriptContext) -> Bool {
       let txInfo = ctx.transaction
       let txOut = txInfo.outputs
       let txMint = txInfo.mint 
@@ -24,9 +24,8 @@ validator {
       let Output { value: out_value, .. } = own_output
 
       expect [burn_ass] = list.filter(txMint, fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
-        let (policy, _, amt) = ass
-
-        policy == "" && amt == -1
+        let (_, _, amt) = ass
+         amt == -1
       })
 
       unlearn.valEq(burn_ass, value.flatten(out_value))

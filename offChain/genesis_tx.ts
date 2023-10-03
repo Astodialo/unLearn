@@ -27,7 +27,8 @@ const lucid = await Lucid.new(
   "Preprod",
 );
 
-const wallet = await lucid.selectWalletFromPrivateKey(await Deno.readTextFile("./stuff/key.sk"));
+//const wallet = await lucid.selectWalletFromPrivateKey(await Deno.readTextFile("./stuff/key.sk"));
+const wallet = await lucid.selectWalletFromSeed(await Deno.readTextFile("./stuff/seed"));
 
 const { paymentCredential} = lucid.utils.getAddressDetails(
   await lucid.wallet.address()

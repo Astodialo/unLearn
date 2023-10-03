@@ -11,7 +11,6 @@ import {
   Constr, 
   fromHex, 
   toHex,
-
   toLabel,
   OutRef,
   Blockfrost,
@@ -53,7 +52,6 @@ const genesis_utxo = new Constr(0, [
 ]);
 
 const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint")
-const treas = blueprint.validators.find((v) => v.title === "treasury.treasury")
 const updat = blueprint.validators.find((v) => v.title === "updater.updater")
 
 const minting_script: MintingPolicy = {
@@ -63,68 +61,53 @@ const minting_script: MintingPolicy = {
     [genesis_utxo]),
 }; 
 
-const treasury_script: SpendingValidator = {
-  type: "PlutusV2",
-  script: treas?.compiledCode ,
-};
-
 const updater_script: SpendingValidator = { 
   type: "PlutusV2",
   script: updat?.compiledCode,
 };
 
-const minting_address = lucid.utils.validatorToAddress(minting_script)
-const treasury_address = lucid.utils.validatorToAddress(treasury_script)
-const updater_address = lucid.utils.validatorToAddress(updater_script)
+const minting_address = lucid.utils.validatorToAddress(minting_script) 
+//const updater_address = lucid.utils.validatorToAddress(updater_script) 
 
 const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
-const unArxh = policyId + fromText("unArxh")
+const unit = policyId + fromText("proposal_0")
+const res_unit = policyId + fromText("proposal_0_R")
 
-const [utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh) 
+const [utxo] = await lucid.utxosAtWithUnit(minting_address, unit) 
 
-let unArxh_datum = Data.from(utxo.datum!) as Constr<bigint>;
- 
-let count = unArxh_datum.fields[0] as bigint;
+let datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
 
-const unit = policyId + fromText("proposal_" + String(count))
-const res_unit = policyId + fromText("proposal_" + String(count) + "_R")
-const claim_unit = policyId + fromText("proposal_" + String(count) + "_Claim")
+const mint_redeemer = Data.to(new Constr(2, []));
 
-const prop_datum = Data.to(new Constr(0, [
-  fromText("proposal_" + String(count)),
-  fromText(" "),
-  fromText(" "),
-  fromText("INIT"),
-  0n,
+let [name, proposal, results, state, amount] = datum.fields
+
+let nu_datum = Data.to(new Constr(0, [
+ name,
+ proposal,
+ fromText("whatever"), 
+ fromText("COMPLETE"),
+ 100n
 ])); 
 
-const nu_datum = Data.to(new Constr(0, [count + 1n]));
-
-const mint_redeemer = Data.to(new Constr(1, []));
-
-console.log("minting redeemer:")
-console.log(Data.from(mint_redeemer))
-console.log("\nold unArxh datum:")
-console.log(unArxh_datum)
-console.log("\nnew unArxh datum:") 
+console.log("\nold proposal datum:")
+console.log(datum)
+console.log("\nnew proposal datum:")
 console.log(Data.from(nu_datum))
-console.log("\nproposal datum:") 
-console.log(Data.from(prop_datum))
+console.log("\nredeemer:")
+console.log(Data.from(mint_redeemer))
 
-const mint_tx = await lucid
+const updater_tx = await lucid
   .newTx()
-  .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
   .collectFrom([utxo], mint_redeemer)
-  .payToAddressWithData(minting_address, {inline: nu_datum}, {[unArxh]: 1n, lovelace: 10000000n, })
-  .payToAddressWithData(minting_address, { inline: prop_datum}, {[unit]: 1n,} )
-  .payToAddress(address, {[res_unit]: 1n,})
-  .payToAddress(address, {[claim_unit]: 1n,})
+  .mintAssets({[res_unit]: -1n,}, mint_redeemer)
+  .payToAddressWithData(minting_address, {inline: nu_datum}, {[unit]: 1n,})
+  //.attachSpendingValidator(updater_script)
   .attachMintingPolicy(minting_script)
   .complete()
+  
+const updater_signedTx = await updater_tx.sign().complete();
 
-const mint_signedTx = await mint_tx.sign().complete();
-
-const mint_txHash = await mint_signedTx.submit();
+const mint_txHash = await updater_signedTx.submit();
 console.log(mint_txHash)
 

@@ -13,6 +13,7 @@ type State {
 type MintingState {
   Genesis
   Mintin
+  Burn
 }
 
 validator(utxo_ref: OutputReference) {
@@ -81,6 +82,31 @@ validator(utxo_ref: OutputReference) {
         //results == "" &&
         //state == "INIT" &&
         //amount == 0
+      }
+      Burn -> {
+        expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
+        let Transaction {inputs, outputs, mint, ..} = txInfo
+        let mint = value.from_minted_value(mint)
+
+        expect Some(own_input) = inputs |> find_input(own_reference)
+
+        let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input
+
+        expect credential.ScriptCredential(own_policy) = payment_credential
+
+        expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
+        let (policy, _, amt) = ass
+
+        policy == own_policy && amt == -1
+      })
+
+        expect [own_output] = list.filter(outputs, fn(output) -> Bool {
+          output.address.payment_credential == credential.ScriptCredential(own_policy)
+        })
+
+        let Output {value: out_value, ..} = own_output
+
+        unlearn.valEq(burn_ass, value.flatten(out_value))
       }
     }
   }

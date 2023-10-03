@@ -12,7 +12,7 @@ pub fn valEq(ass: (value.PolicyId, value.AssetName, Int), val: List<(value.Polic
     let (ref_policy, ref_name, _) = ref_ass
 
     let equality = ref_name
-    |> bytearray.concat(_, "_Claim")
+    |> bytearray.concat(_, "_R")
     |> bytearray.compare(_, name) 
 
     equality == Equal && (policy == ref_policy)
