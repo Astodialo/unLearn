@@ -1,7 +1,7 @@
 use aiken/bytearray
 use aiken/list
 use aiken/string
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, Mint, Spend, OutputReference, find_input}
+use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, Spend, OutputReference, find_input}
 use aiken/transaction/value
 use aiken/transaction/credential
 use unlearn
@@ -27,11 +27,14 @@ type Metadata {
 
 validator(utxo_ref: OutputReference) {
   fn prop_mint(_datum, redeemer: MintingState, ctx: ScriptContext) -> Bool {
+    expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
+    let Transaction {inputs, outputs, mint, ..} = txInfo
+    let mint = value.from_minted_value(mint)
+
     when redeemer is {
       Genesis -> {
-        expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
-        let Transaction {inputs, outputs, mint, ..} = txInfo
-        let mint = value.from_minted_value(mint)
+        expect [(own_policy, _, _)]  = value.flatten(mint) 
+          
 
         expect list.any(inputs, fn(input) { input.output_reference == utxo_ref })?
 
@@ -50,10 +53,6 @@ validator(utxo_ref: OutputReference) {
         (initial_state == output_state)?
       }
       Mintin -> {
-        expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
-        let Transaction {inputs, outputs, mint, ..} = txInfo
-        let mint = value.from_minted_value(mint)
-
         expect Some(own_input) = inputs |> find_input(own_reference)
 
         let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input
@@ -93,10 +92,6 @@ validator(utxo_ref: OutputReference) {
         //amount == 0
       }
       Update -> {
-        expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
-        let Transaction {inputs, outputs, mint, ..} = txInfo
-        let mint = value.from_minted_value(mint)
-
         expect Some(own_input) = inputs |> find_input(own_reference)
 
         let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input
@@ -118,10 +113,6 @@ validator(utxo_ref: OutputReference) {
         unlearn.valEq("_R", burn_ass, value.flatten(out_value))
       }
       Withdraw -> {
-        expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
-        let Transaction {inputs, outputs, mint, ..} = txInfo
-        let mint = value.from_minted_value(mint)
-
         expect Some(own_input) = inputs |> find_input(own_reference)
 
         let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input

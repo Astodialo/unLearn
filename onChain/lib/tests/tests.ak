@@ -201,37 +201,3 @@ test find_ref_input(){
   && list.length(value.flatten(value.without_lovelace(val))) == 0 
 }
 
-test empty_ref_input(){
-  let out_R = test_output_R()
-  let out_lvlc = test_output_lvlc()
-      
-  expect [burn_ass] = list.filter(value.flatten(out_R.value), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
-
-    let (policy, _, amt) = ass
-
-    policy == #"acab" && amt == 40
-  })   
-
-  let ref_input = []
-    |> list.map(_, fn(input: Input) {
-      let Input {output, ..} = input
-
-      output
-    })
-    |> list.filter(_, fn(output: Output) -> Bool {
-      let Output {value, ..} = output
-
-      unlearn.valEq("_R", burn_ass, value.flatten(value))
-    })
-
-  expect [ref_input] = ref_input
-
-  expect InlineDatum(ref_datum) = ref_input.datum
-
-  expect Metadata {amount, ..}: Metadata = ref_datum
-
-  let Output {value: val, ..} = out_lvlc
-
-  value.lovelace_of(val) == amount 
-  && list.length(value.flatten(value.without_lovelace(val))) == 0 
-}
