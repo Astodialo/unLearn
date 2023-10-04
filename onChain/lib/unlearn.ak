@@ -6,13 +6,14 @@ use aiken/transaction/value
 
 pub const master_token_name = "unArxh"  
 
-pub fn valEq(ass: (value.PolicyId, value.AssetName, Int), val: List<(value.PolicyId, value.AssetName, Int)>) -> Bool {
+
+pub fn valEq(ending: ByteArray, ass: (value.PolicyId, value.AssetName, Int), val: List<(value.PolicyId, value.AssetName, Int)>) -> Bool {
   list.any(val, fn(ref_ass: (value.PolicyId, value.AssetName, Int)) { 
     let (policy, name, _) = ass
     let (ref_policy, ref_name, _) = ref_ass
 
     let equality = ref_name
-    |> bytearray.concat(_, "_R")
+    |> bytearray.concat(_, ending)
     |> bytearray.compare(_, name) 
 
     equality == Equal && (policy == ref_policy)
@@ -25,8 +26,8 @@ pub fn correct_amount(outputs: List<Output>, ref_amount: Int) -> Bool {
 
   let Output {value: val, ..} = output
 
-  value.lovelace_of(val) == ref_amount &&
-  list.length(value.flatten(value.without_lovelace(val))) == 0 
+  value.lovelace_of(val) == ref_amount //&&
+  && list.length(value.flatten(value.without_lovelace(val))) == 0 
 }
 
 pub fn own_validator_input_utxo(inputs: List<Input>, output_reference: OutputReference,) -> Output {

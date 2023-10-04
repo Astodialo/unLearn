@@ -13,7 +13,16 @@ type State {
 type MintingState {
   Genesis
   Mintin
-  Burn
+  Update
+  Withdraw
+}
+
+type Metadata {
+  name:     ByteArray,
+  proposal: ByteArray,
+  results:  ByteArray,
+  state:    ByteArray,
+  amount:   Int
 }
 
 validator(utxo_ref: OutputReference) {
@@ -83,7 +92,7 @@ validator(utxo_ref: OutputReference) {
         //state == "INIT" &&
         //amount == 0
       }
-      Burn -> {
+      Update -> {
         expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
         let Transaction {inputs, outputs, mint, ..} = txInfo
         let mint = value.from_minted_value(mint)
@@ -106,7 +115,49 @@ validator(utxo_ref: OutputReference) {
 
         let Output {value: out_value, ..} = own_output
 
-        unlearn.valEq(burn_ass, value.flatten(out_value))
+        unlearn.valEq("_R", burn_ass, value.flatten(out_value))
+      }
+      Withdraw -> {
+        expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
+        let Transaction {inputs, outputs, mint, ..} = txInfo
+        let mint = value.from_minted_value(mint)
+
+        expect Some(own_input) = inputs |> find_input(own_reference)
+
+        let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input
+
+        expect credential.ScriptCredential(own_policy) = payment_credential
+
+        expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
+          let (policy, _, amt) = ass
+
+          policy == own_policy && amt == -1
+        })
+
+        let ref_input = txInfo.reference_inputs
+          |> list.map(_, fn(input: Input) {
+            let Input {output, ..} = input
+
+            output
+          })
+          |> list.filter(_, fn(output: Output) -> Bool {
+            let Output {value, ..} = output
+
+            unlearn.valEq("_Claim", burn_ass, value.flatten(value))
+          })
+
+        expect [ref_input] = ref_input
+
+        expect InlineDatum(ref_datum) = ref_input.datum
+        
+        expect Metadata {amount, ..}: Metadata = ref_datum
+              
+        expect [output] = outputs
+        
+        let Output {value, ..} = output
+
+        value.lovelace_of(value) == amount 
+        && list.length(value.flatten(value.without_lovelace(value))) == 0 
       }
     }
   }

@@ -7,6 +7,15 @@ use unlearn
 type State {
   count: Int
 }
+
+type Metadata {
+  name:     ByteArray,
+  proposal: ByteArray,
+  results:  ByteArray,
+  state:    ByteArray,
+  amount:   Int
+}
+
 pub fn test_input() -> Input {
   let input =
     Input {
@@ -23,6 +32,30 @@ pub fn test_input() -> Input {
     }
   input
 }
+
+pub fn test_input2() -> Input {
+  let input =
+    Input {
+      output_reference: OutputReference {
+        transaction_id: TransactionId { hash: #"acab" },
+        output_index: 0,
+      },
+      output: Output {
+        address: addresses.create_address(#"acab", #""),
+        value: value.from_asset(#"acab", "beef", 40),
+        datum: InlineDatum(Metadata {
+          name:     "",
+          proposal: "",
+          results:  "",
+          state:    "",
+          amount:   100
+        }),
+        reference_script: None,
+      },
+    }
+  input
+}
+
 pub fn test_output() -> Output {
   let output =
     Output {
@@ -39,6 +72,17 @@ pub fn test_output_R() -> Output {
     Output {
       address: addresses.create_address(#"acab", #""),
       value: value.from_asset(#"acab", "beef_R", 40),
+      datum: InlineDatum(State {count: 1}),
+      reference_script: None,
+    }
+  output
+}
+
+pub fn test_output_lvlc() -> Output {
+  let output =
+    Output {
+      address: addresses.create_address(#"acab", #""),
+      value: value.from_lovelace(100),
       datum: InlineDatum(State {count: 1}),
       reference_script: None,
     }
@@ -89,15 +133,105 @@ test burn_ass(){
 }
 
 test valeq(){
-   let out = test_output() 
-   let out_R = test_output_R()
-        
-   expect [burn_ass] = list.filter(value.flatten(out_R.value), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
+  let out = test_output() 
+  let out_R = test_output_R()
+      
+  expect [burn_ass] = list.filter(value.flatten(out_R.value), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
 
-     let (policy, _, amt) = ass
+    let (policy, _, amt) = ass
 
-     policy == #"acab" && amt == 40
-    })   
+    policy == #"acab" && amt == 40
+  })   
 
-    unlearn.valEq(burn_ass, value.flatten(out.value) )
+  unlearn.valEq("_R", burn_ass, value.flatten(out.value) )
+}
+
+test correct_amt(){
+  let out = test_output_lvlc()  
+
+  expect Some(output) = list.head([out])
+
+  let Output {value: val, ..} = output
+
+  value.lovelace_of(val) == 100
+}
+
+!test no_output(){
+  expect [output] = [] 
+
+  let Output {value: val, ..} = output
+
+  value.lovelace_of(val) == 100 
+  //&& list.length(outputs) == 1
+}
+
+
+test find_ref_input(){
+  let out_R = test_output_R()
+  let out_lvlc = test_output_lvlc()
+      
+  expect [burn_ass] = list.filter(value.flatten(out_R.value), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
+
+    let (policy, _, amt) = ass
+
+    policy == #"acab" && amt == 40
+  })   
+
+  let ref_input = [test_input2()]
+    |> list.map(_, fn(input: Input) {
+      let Input {output, ..} = input
+
+      output
+    })
+    |> list.filter(_, fn(output: Output) -> Bool {
+      let Output {value, ..} = output
+
+      unlearn.valEq("_R", burn_ass, value.flatten(value))
+    })
+
+  expect [ref_input] = ref_input
+
+  expect InlineDatum(ref_datum) = ref_input.datum
+
+  expect Metadata {amount, ..}: Metadata = ref_datum
+
+  let Output {value: val, ..} = out_lvlc
+
+  value.lovelace_of(val) == amount 
+  && list.length(value.flatten(value.without_lovelace(val))) == 0 
+}
+
+test empty_ref_input(){
+  let out_R = test_output_R()
+  let out_lvlc = test_output_lvlc()
+      
+  expect [burn_ass] = list.filter(value.flatten(out_R.value), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
+
+    let (policy, _, amt) = ass
+
+    policy == #"acab" && amt == 40
+  })   
+
+  let ref_input = []
+    |> list.map(_, fn(input: Input) {
+      let Input {output, ..} = input
+
+      output
+    })
+    |> list.filter(_, fn(output: Output) -> Bool {
+      let Output {value, ..} = output
+
+      unlearn.valEq("_R", burn_ass, value.flatten(value))
+    })
+
+  expect [ref_input] = ref_input
+
+  expect InlineDatum(ref_datum) = ref_input.datum
+
+  expect Metadata {amount, ..}: Metadata = ref_datum
+
+  let Output {value: val, ..} = out_lvlc
+
+  value.lovelace_of(val) == amount 
+  && list.length(value.flatten(value.without_lovelace(val))) == 0 
 }

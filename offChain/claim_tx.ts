@@ -40,7 +40,7 @@ const {validator, validatorHash, validatorAddress, outRef}: Genesis = JSON.parse
 
 const wallet = await lucid.selectWalletFromSeed(await Deno.readTextFile("./stuff/seed"));
 
-let address = await lucid.wallet.address();
+const address = await lucid.wallet.address()
 
 const genesis_utxo = new Constr(0, [
   new Constr(0, [outRef.txHash]),
@@ -54,52 +54,41 @@ const minting_script: MintingPolicy = {
   script: applyParamsToScript(
     prop_mint?.compiledCode,
     [genesis_utxo]),
-}; 
+};
 
-const minting_address = lucid.utils.validatorToAddress(minting_script) 
-//const updater_address = lucid.utils.validatorToAddress(updater_script) 
+const minting_address = lucid.utils.validatorToAddress(minting_script)
 
 const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
 const prop_id = prompt("proposal number:");
 
-const unit = policyId + fromText("proposal_") + fromText(prop_id)
-const res_unit = unit + fromText("_R")
+const proposal_0 = policyId + fromText("proposal_") + fromText(prop_id)
+const claim_unit = proposal_0 + fromText("_Claim")
 
-const [utxo] = await lucid.utxosAtWithUnit(minting_address, unit) 
+
+const [utxo] = await lucid.utxosAtWithUnit(minting_address, proposal_0)
 
 const datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
 
-const mint_redeemer = Data.to(new Constr(2, []));
+const mint_redeemer = Data.to(new Constr(3, []));
 
-const [name, proposal, _results, _state, _amount] = datum.fields
+const amt: bigint = datum.fields[4] 
 
-const nu_datum = Data.to(new Constr(0, [
- name,
- proposal,
- fromText("whatever"), 
- fromText("COMPLETE"),
- 100n
-])); 
-
-console.log("\nold proposal datum:")
-console.log(datum)
-console.log("\nnew proposal datum:")
-console.log(Data.from(nu_datum))
+console.log("withrawal amount:")
+console.log(amt)
 console.log("\nredeemer:")
 console.log(Data.from(mint_redeemer))
 
-const updater_tx = await lucid
+const claim_tx = await lucid
   .newTx()
-  .collectFrom([utxo], mint_redeemer)
-  .mintAssets({[res_unit]: -1n,}, mint_redeemer)
-  .payToAddressWithData(minting_address, {inline: nu_datum}, {[unit]: 1n,})
-  //.attachSpendingValidator(updater_script)
+  //.readFrom([utxo])
+  .mintAssets({[claim_unit]: -1n,}, mint_redeemer)
+  //.withdraw(address, {lovelace: amt}, mint_redeemer)
   .attachMintingPolicy(minting_script)
   .complete()
-  
-const updater_signedTx = await updater_tx.sign().complete();
 
-const mint_txHash = await updater_signedTx.submit();
-console.log(mint_txHash)
 
+const claim_signedTx = await claim_tx.sign().complete();
+
+const claim_txHash = await claim_signedTx.submit();
+console.log(claim_txHash)
