@@ -106,7 +106,7 @@ validator(utxo_ref: OutputReference) {
       }
     }
   }
-  fn spend(datum: State, _redeemer, ctx: ScriptContext) -> Bool {
+  fn spend(datum: State, redeemer: Int, ctx: ScriptContext) -> Bool {
     trace "hi"
     expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
     let Transaction {inputs, outputs, mint, ..} = txInfo

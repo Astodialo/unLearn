@@ -86,7 +86,7 @@ const prop_datum = Data.to(new Constr(0, [
 
 const nu_datum = Data.to(new Constr(0, [count + 1n]));
 
-const mint_redeemer = Data.to(new Constr(1, []));
+const mint_redeemer = Data.to(new Constr(1, [0n]));
 
 console.log("minting redeemer:")
 console.log(Data.from(mint_redeemer))
