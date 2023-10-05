@@ -43,21 +43,21 @@ const wallet = await lucid.selectWalletFromSeed(await Deno.readTextFile("./stuff
 const { paymentCredential} = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
 );
-
-let address = await lucid.wallet.address();
+const address = lucid.wallet.address();
 
 const genesis_utxo = new Constr(0, [
   new Constr(0, [outRef.txHash]),
   BigInt(outRef.index),
 ]);
 
-const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint")
+const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint");
 
-const minting_script: SpendingValidator = {
+const minting_script: MintingPolicy = {
   type: "PlutusV2",
   script: applyParamsToScript(
     prop_mint?.compiledCode,
-    [genesis_utxo]),
+    [genesis_utxo],
+  ),
 }; 
 
 const minting_address = lucid.utils.validatorToAddress(minting_script)

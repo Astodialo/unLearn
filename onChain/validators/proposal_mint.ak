@@ -29,6 +29,7 @@ validator(utxo_ref: OutputReference) {
   fn prop_mint(redeemer: MintingAction, ctx: ScriptContext) -> Bool {
     when redeemer is {
       Genesis -> {
+        trace "hi"
         expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
         let Transaction {inputs, outputs, mint, ..} = txInfo
         let mint = value.from_minted_value(mint)
@@ -47,13 +48,15 @@ validator(utxo_ref: OutputReference) {
 
         let initial_state =  State {count: 0}
 
-        initial_state == output_state
+        (initial_state == output_state)?
       }
       Mintin -> {
         expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
         let Transaction {inputs, outputs, mint, ..} = txInfo
         let mint = value.from_minted_value(mint)
 
+        trace "hi"
+        
         expect Some(own_input) = inputs |> find_input(own_reference)
 
         let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input
@@ -62,13 +65,30 @@ validator(utxo_ref: OutputReference) {
 
         expect Some(unArxh_input) = list.find(inputs, fn(input) {
           let q = value.quantity_of(input.output.value, own_policy, unlearn.master_token_name,)
-          q == 1 
+
+          if (q == 1) {
+            trace "there is input"
+            True
+          } else {
+            trace "there is no input"
+            False
+          }
+
+          //q == 1 
         })
 
         expect Some(unArxh_output) = list.find(outputs, fn(output: Output) { 
           let q = value.quantity_of(output.value, own_policy, unlearn.master_token_name,)
 
-          q == 1
+          if (q == 1) {
+            trace "there is output"
+            True
+          }else {
+            trace "there is no output"
+            False
+          }
+
+          //q == 1
         })
 
         expect InlineDatum(in_dtm) = unArxh_input.output.datum 
@@ -77,7 +97,7 @@ validator(utxo_ref: OutputReference) {
         expect State { count: count_b4 }: State = in_dtm 
         expect State { count: count_after }: State = out_dtm 
 
-        count_b4 == count_after - 1 
+        (count_b4 == count_after - 1)? 
         //&& unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy) 
 
         //expect [updater_output] =  list.filter(outputs, fn(output: Output) {

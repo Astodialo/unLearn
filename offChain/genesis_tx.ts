@@ -53,14 +53,6 @@ const minting_script: MintingPolicy = {
 
 const minting_address = lucid.utils.validatorToAddress(minting_script)
 
-const UnArxh_schema = Data.Object({
-  name: Data.Bytes(),
-  count: Data.Integer(),
-});
-
-type UnArxh = Data.Static<typeof UnArxh_schema>;
-const UnArxh = UnArxh_schema as unknown as UnArxh;
-
 const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
 const unArxh = policyId + fromText("unArxh")
@@ -94,5 +86,5 @@ const genesis = "{\n  \"validator\": \"" + minting_script.script + "\"," + "\n"
 
 
 await Deno.writeTextFileSync("./stuff/genesis.json", genesis); 
-
+console.log(signedTx)
 console.log(txHash);
