@@ -11,7 +11,6 @@ import {
   Constr, 
   fromHex, 
   toHex,
-
   toLabel,
   OutRef,
   Blockfrost,
@@ -53,29 +52,15 @@ const genesis_utxo = new Constr(0, [
 ]);
 
 const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint")
-const treas = blueprint.validators.find((v) => v.title === "treasury.treasury")
-const updat = blueprint.validators.find((v) => v.title === "updater.updater")
 
-const minting_script: MintingPolicy = {
+const minting_script: SpendingValidator = {
   type: "PlutusV2",
   script: applyParamsToScript(
     prop_mint?.compiledCode,
     [genesis_utxo]),
 }; 
 
-const treasury_script: SpendingValidator = {
-  type: "PlutusV2",
-  script: treas?.compiledCode ,
-};
-
-const updater_script: SpendingValidator = { 
-  type: "PlutusV2",
-  script: updat?.compiledCode,
-};
-
 const minting_address = lucid.utils.validatorToAddress(minting_script)
-const treasury_address = lucid.utils.validatorToAddress(treasury_script)
-const updater_address = lucid.utils.validatorToAddress(updater_script)
 
 const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
@@ -115,12 +100,12 @@ console.log(Data.from(prop_datum))
 const mint_tx = await lucid
   .newTx()
   .collectFrom([utxo], mint_redeemer)
-  .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
+  //.mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
   .payToAddressWithData(minting_address, {inline: nu_datum}, {[unArxh]: 1n,})
-  .payToAddressWithData(minting_address, { inline: prop_datum}, {[unit]: 1n,} )
-  .payToAddress(address, {[res_unit]: 1n,})
-  .payToAddress(address, {[claim_unit]: 1n,})
-  .attachMintingPolicy(minting_script)
+  //.payToAddressWithData(minting_address, { inline: prop_datum}, {[unit]: 1n,} )
+  //.payToAddress(address, {[res_unit]: 1n,})
+  //.payToAddress(address, {[claim_unit]: 1n,})
+  .attachSpendingValidator(minting_script)
   .complete()
 
 const mint_signedTx = await mint_tx.sign().complete();

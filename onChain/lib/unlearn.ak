@@ -4,8 +4,7 @@ use aiken/list
 use aiken/transaction.{Input, Output, OutputReference}
 use aiken/transaction/value
 
-pub const master_token_name = "unArxh"  
-
+pub const master_token_name: ByteArray = "unArxh"  
 
 pub fn valEq(ending: ByteArray, ass: (value.PolicyId, value.AssetName, Int), val: List<(value.PolicyId, value.AssetName, Int)>) -> Bool {
   list.any(val, fn(ref_ass: (value.PolicyId, value.AssetName, Int)) { 
