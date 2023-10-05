@@ -74,6 +74,7 @@ console.log(minting_script)
 
 const tx = await lucid
   .newTx()
+  .collectFrom([utxo])
   .mintAssets({ [unArxh]: 1n }, genesis_redeemer,)
   .payToAddressWithData(minting_address, {inline: genesis_datum}, {[unArxh]: 1n, lovelace: 10000000n, })
   .attachMintingPolicy( minting_script,)

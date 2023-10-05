@@ -1,5 +1,16 @@
-dist-newstyle
-CHANGELOG.md
-ideas
-test
-**/wallet.ts
+# Aiken compilation artifacts
+artifacts/
+# Aiken's project working directory
+build/
+# Aiken's default documentation export
+docs/
+
+
+# Added by cargo
+
+/target
+
+seed.txt
+.env
+
+.idea/
