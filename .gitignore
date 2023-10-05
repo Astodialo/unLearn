@@ -10,7 +10,7 @@ docs/
 
 /target
 
-seed.txt
+seed
 .env
 
 .idea/
