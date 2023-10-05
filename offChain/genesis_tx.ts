@@ -86,5 +86,4 @@ const genesis = "{\n  \"validator\": \"" + minting_script.script + "\"," + "\n"
 
 
 await Deno.writeTextFileSync("./stuff/genesis.json", genesis); 
-console.log(signedTx)
 console.log(txHash);
