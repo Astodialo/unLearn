@@ -8,6 +8,7 @@ import {
   Data, 
   TxHash, 
   sign, 
+  Assets,
   Constr, 
   fromHex, 
   toHex,
@@ -65,32 +66,38 @@ const prop_id = prompt("proposal number:");
 const proposal = policyId + fromText("proposal_") + fromText(prop_id)
 const claim_unit = proposal + fromText("_Claim")
 
-const [scriptUtxo] = await lucid.utxosAt(minting_address);
 
 const [utxo] = await lucid.utxosAtWithUnit(minting_address, proposal)
+
 const [claim_utxo] = await lucid.utxosAtWithUnit(address, claim_unit)
+
+let scriptUtxos = await lucid.utxosAt(minting_address);
+scriptUtxos = scriptUtxos.filter(u => u.datum !== utxo.datum) 
 
 const datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
 
 const mint_redeemer = Data.to(new Constr(3, []));
 const spend_redeemer = Data.to(new Constr(1, [new Constr(3, [])]));
 
-const amt: bigint = datum.fields[4] 
+let amt: bigint = datum.fields[4] + claim_utxo.assets.lovelace 
 
 console.log("withrawal amount:")
 console.log(amt)
 console.log("\nredeemer:")
 console.log(Data.from(mint_redeemer))
 console.log(minting_address)
-console.log(scriptUtxo.assets)
 console.log(claim_utxo.assets.lovelace)
+console.log(amt)
+
+
 
 const claim_tx = await lucid
   .newTx()
   .readFrom([utxo])
-  .collectFrom([scriptUtxo], spend_redeemer)
+  .collectFrom(scriptUtxos, spend_redeemer)
+  .collectFrom([claim_utxo],)
   .mintAssets({[claim_unit]: -1n,}, mint_redeemer)
-  .payToAddress(address, {lovelace: amt + claim_utxo.assets.lovelace},)
+  .payToAddress(address, {lovelace: amt },)
   .attachMintingPolicy(minting_script)
   .complete({change: {address: minting_address}})
 

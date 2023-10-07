@@ -148,13 +148,35 @@ validator(utxo_ref: OutputReference) {
         
         expect Metadata {amount, ..}: Metadata = ref_datum
               
+        expect [burn_input_output] = inputs 
+          |> list.map(_, fn(input: Input) {
+            let Input {output, ..} = input
+
+            output
+          })
+          |> list.filter(_, fn(output: Output) -> Bool {
+            let Output {value, ..} = output
+            let flat_val = value.flatten(value)
+            list.any(flat_val, fn(ass: (value.PolicyId, value.AssetName, Int)) {
+              let (policy, name, amt) = ass
+              let (burn_policy, burn_name, burn_amt) =burn_ass
+
+              if (policy == own_policy &&  name == burn_name) {
+                trace "assinput"
+                trace cbor.diagnostic(amt)
+                True
+              }else {False}
+            }) 
+          })
+
         let val_from_outputs = 0
         let user_lvlc_input = 0
 
         let user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
           trace "beep"
-          if (input.output.address.payment_credential != credential.ScriptCredential(own_policy)) {
-            trace "boop" 
+          if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
+            trace "initiator input" 
+            trace cbor.diagnostic(input.output.value)
             user_lvlc_input + value.lovelace_of(input.output.value)
             
           }else {
@@ -167,15 +189,19 @@ validator(utxo_ref: OutputReference) {
           let Output {address, value, ..} = output
 
           trace "yeet"
-          if (address.payment_credential != credential.ScriptCredential(own_policy)) {
-            trace "yoot" 
+          if (address.payment_credential == burn_input_output.address.payment_credential) {
+            trace "initiator output" 
+            trace cbor.diagnostic(value.lovelace_of(value))
             val_from_outputs + value.lovelace_of(value)
           }else {
             val_from_outputs
           }
         })
         
-        trace "hi"
+        trace "ho"
+        trace cbor.diagnostic(user_lvlc_input)
+        trace cbor.diagnostic(val_from_outputs)
+        trace "ho"
         //let Output {value, ..} = output
         (val_from_outputs == user_lvlc_input + amount)? 
         //&& (list.length(value.flatten(value.without_lovelace(value))) == 0)? 
@@ -275,6 +301,27 @@ validator(utxo_ref: OutputReference) {
             }else {False}
           })
 
+        expect [burn_input_output] = inputs 
+          |> list.map(_, fn(input: Input) {
+            let Input {output, ..} = input
+
+            output
+          })
+          |> list.filter(_, fn(output: Output) -> Bool {
+            let Output {value, ..} = output
+            let flat_val = value.flatten(value)
+            list.any(flat_val, fn(ass: (value.PolicyId, value.AssetName, Int)) {
+              let (policy, name, amt) = ass
+              let (burn_policy, burn_name, _) = burn_ass
+
+              if (policy == own_policy &&  name == burn_name) {
+                trace "assinput"
+                trace cbor.diagnostic(amt)
+                True
+              }else {False}
+            }) 
+          })
+
         expect [ref_input] = ref_input
 
         expect InlineDatum(ref_datum) = ref_input.datum
@@ -290,8 +337,8 @@ validator(utxo_ref: OutputReference) {
 
         let  user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
           trace "beep"
-          if (input.output.address.payment_credential != credential.ScriptCredential(own_policy)) {
-            trace "boop" 
+          if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
+            trace "initiator input" 
             user_lvlc_input + value.lovelace_of(input.output.value)
             
           }else {
@@ -304,15 +351,17 @@ validator(utxo_ref: OutputReference) {
           let Output {address, value, ..} = output
 
           trace "yeet"
-          if (address.payment_credential != credential.ScriptCredential(own_policy)) {
-            trace "yoot" 
+          if (address.payment_credential == burn_input_output.address.payment_credential) {
+            trace "initiator output" 
+            trace cbor.diagnostic(value.lovelace_of(value))
             val_from_outputs + value.lovelace_of(value)
           }else {
             val_from_outputs
           }
         })
         
-        trace ""
+        trace "hi"
+        trace cbor.diagnostic(user_lvlc_input + amount)
         trace cbor.diagnostic(val_from_outputs)
         trace "hi"
         //let Output {value, ..} = output
