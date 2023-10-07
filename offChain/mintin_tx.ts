@@ -81,7 +81,7 @@ const prop_datum = Data.to(new Constr(0, [
   fromText(" "),
   fromText(" "),
   fromText("INIT"),
-  1400000n,
+  140000000n,
 ])); 
 
 const nu_datum = Data.to(new Constr(0, [count + 1n]));

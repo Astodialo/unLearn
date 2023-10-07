@@ -169,32 +169,39 @@ validator(utxo_ref: OutputReference) {
             }) 
           })
 
-        let val_from_outputs = 0
-        let user_lvlc_input = 0
-
-        let user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
-          trace "beep"
-          if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
-            trace "initiator input" 
-            trace cbor.diagnostic(value.lovelace_of(input.output.value))
-            user_lvlc_input + value.lovelace_of(input.output.value)
-            
-          }else {
-            user_lvlc_input 
-          }
+        expect [initiator_input] = list.filter(inputs, fn(input: Input) -> Bool {
+          input.output.address.payment_credential == burn_input_output.address.payment_credential
         })
+        //let  user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
+         // trace "beep"
+         // if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
+         //   trace "initiator input" 
+         //   trace cbor.diagnostic(value.lovelace_of(input.output.value))
+
+         //   user_lvlc_input + value.lovelace_of(input.output.value)
+         // }else {
+         //   user_lvlc_input 
+         // }
+        //})
 
 
-        let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
-          trace "yeet"
-          if (output.address.payment_credential == burn_input_output.address.payment_credential) {
-            trace "initiator output" 
-            trace cbor.diagnostic(value.lovelace_of(output.value))
-            val_from_outputs + value.lovelace_of(output.value)
-          }else {
-            val_from_outputs
-          }
+        expect [initiator_output] = list.filter(outputs, fn(output: Output) -> Bool{
+          output.address.payment_credential == burn_input_output.address.payment_credential
         })
+        //let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
+        //  trace "yeet"
+        //  if (output.address.payment_credential == burn_input_output.address.payment_credential) {
+        //    trace "initiator output" 
+        //    trace cbor.diagnostic(value.lovelace_of(output.value))
+
+        //    val_from_outputs + value.lovelace_of(output.value)
+        //  }else {
+        //    val_from_outputs
+        //  }
+        //})
+        
+        let user_lvlc_input = value.lovelace_of(initiator_input.output.value)
+        let val_from_outputs = value.lovelace_of(initiator_output.value)
         
         trace "lvlvc input"
         trace cbor.diagnostic(user_lvlc_input + amount)
@@ -206,7 +213,7 @@ validator(utxo_ref: OutputReference) {
       }
     }
   }
-  fn spend(datum, redeemer: MintingAction, ctx: ScriptContext) -> Bool {
+  fn spend(_ , redeemer: MintingAction, ctx: ScriptContext) -> Bool {
     expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
     let Transaction {inputs, outputs, mint, ..} = txInfo
     let mint = value.from_minted_value(mint)
@@ -223,6 +230,20 @@ validator(utxo_ref: OutputReference) {
       Mintin -> {
         trace "hi"
 
+        expect Some(unArxh_input) = list.find(inputs, fn(input) {
+          let q = value.quantity_of(input.output.value, own_policy, unlearn.master_token_name,)
+
+          if (q == 1) {
+            trace "there is input"
+            True
+          } else {
+            trace "there is no input"
+            False
+          }
+
+          //q == 1 
+        })
+
         expect Some(unArxh_output) = list.find(outputs, fn(output: Output) { 
           let q = value.quantity_of(output.value, own_policy, unlearn.master_token_name,)
 
@@ -237,9 +258,10 @@ validator(utxo_ref: OutputReference) {
           //q == 1
         })
 
+        expect InlineDatum(in_dtm) = unArxh_input.output.datum
         expect InlineDatum(out_dtm) = unArxh_output.datum
 
-        expect State { count: count_b4 }: State = datum 
+        expect State { count: count_b4 }: State = in_dtm 
         expect State { count: count_after }: State = out_dtm 
 
         (count_b4 == count_after - 1)? 
@@ -329,35 +351,41 @@ validator(utxo_ref: OutputReference) {
         expect Metadata {amount, ..}: Metadata = ref_datum
               
         trace cbor.diagnostic(amount)
-        
-        let val_from_outputs = 0
-        let user_lvlc_input = 0
 
-        let  user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
-          trace "beep"
-          if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
-            trace "initiator input" 
-            trace cbor.diagnostic(value.lovelace_of(input.output.value))
-
-            user_lvlc_input + value.lovelace_of(input.output.value)
-          }else {
-            user_lvlc_input 
-          }
+        expect [initiator_input] = list.filter(inputs, fn(input: Input) -> Bool {
+          input.output.address.payment_credential == burn_input_output.address.payment_credential
         })
+        //let  user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
+         // trace "beep"
+         // if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
+         //   trace "initiator input" 
+         //   trace cbor.diagnostic(value.lovelace_of(input.output.value))
+
+         //   user_lvlc_input + value.lovelace_of(input.output.value)
+         // }else {
+         //   user_lvlc_input 
+         // }
+        //})
 
 
-        let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
-          trace "yeet"
-          if (output.address.payment_credential == burn_input_output.address.payment_credential) {
-            trace "initiator output" 
-            trace cbor.diagnostic(value.lovelace_of(output.value))
-
-            val_from_outputs + value.lovelace_of(output.value)
-          }else {
-            val_from_outputs
-          }
+        expect [initiator_output] = list.filter(outputs, fn(output: Output) -> Bool{
+          output.address.payment_credential == burn_input_output.address.payment_credential
         })
+        //let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
+        //  trace "yeet"
+        //  if (output.address.payment_credential == burn_input_output.address.payment_credential) {
+        //    trace "initiator output" 
+        //    trace cbor.diagnostic(value.lovelace_of(output.value))
+
+        //    val_from_outputs + value.lovelace_of(output.value)
+        //  }else {
+        //    val_from_outputs
+        //  }
+        //})
         
+        let user_lvlc_input = value.lovelace_of(initiator_input.output.value)
+        let val_from_outputs = value.lovelace_of(initiator_output.value)
+
         trace "lvlvc input"
         trace cbor.diagnostic(user_lvlc_input + amount)
 

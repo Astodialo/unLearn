@@ -65,14 +65,16 @@ const prop_id = prompt("proposal number:");
 
 const proposal = policyId + fromText("proposal_") + fromText(prop_id)
 const claim_unit = proposal + fromText("_Claim")
+const unArxh = policyId + fromText("unArxh")
 
 
 const [utxo] = await lucid.utxosAtWithUnit(minting_address, proposal)
+const [unArxh_utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh)
 
 const [claim_utxo] = await lucid.utxosAtWithUnit(address, claim_unit)
 
 let scriptUtxos = await lucid.utxosAt(minting_address);
-scriptUtxos = scriptUtxos.filter(u => u.datum !== utxo.datum) 
+scriptUtxos = scriptUtxos.filter(u => u.datum !== unArxh_utxo.datum) 
 
 const datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
 
