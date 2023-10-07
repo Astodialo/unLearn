@@ -74,7 +74,7 @@ const [unArxh_utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh)
 const [claim_utxo] = await lucid.utxosAtWithUnit(address, claim_unit)
 
 let scriptUtxos = await lucid.utxosAt(minting_address);
-scriptUtxos = scriptUtxos.filter(u => u.datum !== unArxh_utxo.datum) 
+scriptUtxos = scriptUtxos.filter(u => u.datum !== unArxh_utxo.datum && u.datum !== utxo.datum) 
 
 const datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
 
@@ -91,6 +91,8 @@ console.log(minting_address)
 console.log(claim_utxo.assets.lovelace)
 console.log(amt)
 
+console.log("script utxos:")
+console.log (scriptUtxos)
 
 
 const claim_tx = await lucid
