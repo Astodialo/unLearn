@@ -176,7 +176,7 @@ validator(utxo_ref: OutputReference) {
           trace "beep"
           if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
             trace "initiator input" 
-            trace cbor.diagnostic(input.output.value)
+            trace cbor.diagnostic(value.lovelace_of(input.output.value))
             user_lvlc_input + value.lovelace_of(input.output.value)
             
           }else {
@@ -186,22 +186,20 @@ validator(utxo_ref: OutputReference) {
 
 
         let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
-          let Output {address, value, ..} = output
-
           trace "yeet"
-          if (address.payment_credential == burn_input_output.address.payment_credential) {
+          if (output.address.payment_credential == burn_input_output.address.payment_credential) {
             trace "initiator output" 
-            trace cbor.diagnostic(value.lovelace_of(value))
-            val_from_outputs + value.lovelace_of(value)
+            trace cbor.diagnostic(value.lovelace_of(output.value))
+            val_from_outputs + value.lovelace_of(output.value)
           }else {
             val_from_outputs
           }
         })
         
-        trace "ho"
-        trace cbor.diagnostic(user_lvlc_input)
+        trace "lvlvc input"
+        trace cbor.diagnostic(user_lvlc_input + amount)
+        trace "lvlc output"
         trace cbor.diagnostic(val_from_outputs)
-        trace "ho"
         //let Output {value, ..} = output
         (val_from_outputs == user_lvlc_input + amount)? 
         //&& (list.length(value.flatten(value.without_lovelace(value))) == 0)? 
@@ -339,8 +337,9 @@ validator(utxo_ref: OutputReference) {
           trace "beep"
           if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
             trace "initiator input" 
+            trace cbor.diagnostic(value.lovelace_of(input.output.value))
+
             user_lvlc_input + value.lovelace_of(input.output.value)
-            
           }else {
             user_lvlc_input 
           }
@@ -348,24 +347,25 @@ validator(utxo_ref: OutputReference) {
 
 
         let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
-          let Output {address, value, ..} = output
-
           trace "yeet"
-          if (address.payment_credential == burn_input_output.address.payment_credential) {
+          if (output.address.payment_credential == burn_input_output.address.payment_credential) {
             trace "initiator output" 
-            trace cbor.diagnostic(value.lovelace_of(value))
-            val_from_outputs + value.lovelace_of(value)
+            trace cbor.diagnostic(value.lovelace_of(output.value))
+
+            val_from_outputs + value.lovelace_of(output.value)
           }else {
             val_from_outputs
           }
         })
         
-        trace "hi"
+        trace "lvlvc input"
         trace cbor.diagnostic(user_lvlc_input + amount)
+
+        trace "lvlc output"
         trace cbor.diagnostic(val_from_outputs)
-        trace "hi"
-        //let Output {value, ..} = output
+
         (val_from_outputs == user_lvlc_input + amount)? 
+        //let Output {value, ..} = output
         //&& (list.length(value.flatten(value.without_lovelace(value))) == 0)? 
       }
     }

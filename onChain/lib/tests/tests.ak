@@ -206,18 +206,18 @@ test lvlc_from_sender_utxo(){
 
   let outpt = test_output_lvlc()
 
-  let val_from_outputs = list.foldr([outpt], val_from_outputs, fn(output: Output, total: Int) -> Int {
+  let val_from_outputs = list.foldl([outpt], val_from_outputs, fn(output: Output, counter: Int) -> Int {
     let Output {address, value, ..} = output
 
     trace "yeet"
-    if (address.payment_credential == output.address.payment_credential){//credential.ScriptCredential(own_policy)) {
-      trace "yoot" 
+    if (address.payment_credential == output.address.payment_credential) {
+      trace "initiator output" 
       val_from_outputs + value.lovelace_of(value)
     }else {
       val_from_outputs
     }
   })
-  
+
   val_from_outputs == 100
 }
 

@@ -99,7 +99,7 @@ const claim_tx = await lucid
   .mintAssets({[claim_unit]: -1n,}, mint_redeemer)
   .payToAddress(address, {lovelace: amt },)
   .attachMintingPolicy(minting_script)
-  .complete({change: {address: minting_address}})
+  .complete({change: {address: minting_address}, coinSelection: false})
 
 
 const claim_signedTx = await claim_tx.sign().complete();
