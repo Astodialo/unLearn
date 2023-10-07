@@ -50,9 +50,9 @@ const genesis_utxo = new Constr(0, [
   BigInt(outRef.index),
 ]);
 
-const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.spend");
+const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint");
 
-const minting_script: SpendingValidator = {
+const minting_script: MintingPolicy = {
   type: "PlutusV2",
   script: applyParamsToScript(
     prop_mint?.compiledCode,
@@ -81,12 +81,13 @@ const prop_datum = Data.to(new Constr(0, [
   fromText(" "),
   fromText(" "),
   fromText("INIT"),
-  0n,
+  1400000n,
 ])); 
 
 const nu_datum = Data.to(new Constr(0, [count + 1n]));
 
-const mint_redeemer = Data.to(new Constr(1, [0n]));
+const mint_redeemer = Data.to(new Constr(1, []));
+const spend_redeemer = Data.to(new Constr(1, [new Constr(1, [])]));
 
 console.log("minting redeemer:")
 console.log(Data.from(mint_redeemer))
@@ -101,14 +102,14 @@ console.log(address)
 
 const mint_tx = await lucid
   .newTx()
-  .collectFrom([utxo], mint_redeemer)
-  //.mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
-  .payToAddressWithData(minting_address, {inline: nu_datum}, {[unArxh]: 1n,})
-  //.payToAddressWithData(minting_address, { inline: prop_datum}, {[unit]: 1n,} )
-  //.payToAddress(address, {[res_unit]: 1n,})
-  //.payToAddress(address, {[claim_unit]: 1n,})
-  .attachSpendingValidator(minting_script)
-  .complete()
+  .collectFrom([utxo], spend_redeemer)
+  .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
+  .payToAddressWithData(minting_address, {inline: nu_datum}, {[unArxh]: 1n, lovelace: utxo.assets.lovelace})
+  .payToAddressWithData(minting_address, { inline: prop_datum}, {[unit]: 1n,} )
+  .payToAddress(address, {[res_unit]: 1n,})
+  .payToAddress(address, {[claim_unit]: 1n,})
+  .attachMintingPolicy(minting_script)
+  .complete({change: {address: address}})
 
 const mint_signedTx = await mint_tx.sign().complete();
 

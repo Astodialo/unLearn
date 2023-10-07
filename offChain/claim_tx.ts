@@ -62,15 +62,18 @@ const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
 const prop_id = prompt("proposal number:");
 
-const proposal_0 = policyId + fromText("proposal_") + fromText(prop_id)
-const claim_unit = proposal_0 + fromText("_Claim")
+const proposal = policyId + fromText("proposal_") + fromText(prop_id)
+const claim_unit = proposal + fromText("_Claim")
 
+const [scriptUtxo] = await lucid.utxosAt(minting_address);
 
-const [utxo] = await lucid.utxosAtWithUnit(minting_address, proposal_0)
+const [utxo] = await lucid.utxosAtWithUnit(minting_address, proposal)
+const [claim_utxo] = await lucid.utxosAtWithUnit(address, claim_unit)
 
 const datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
 
 const mint_redeemer = Data.to(new Constr(3, []));
+const spend_redeemer = Data.to(new Constr(1, [new Constr(3, [])]));
 
 const amt: bigint = datum.fields[4] 
 
@@ -78,14 +81,18 @@ console.log("withrawal amount:")
 console.log(amt)
 console.log("\nredeemer:")
 console.log(Data.from(mint_redeemer))
+console.log(minting_address)
+console.log(scriptUtxo.assets)
+console.log(claim_utxo.assets.lovelace)
 
 const claim_tx = await lucid
   .newTx()
-  //.readFrom([utxo])
+  .readFrom([utxo])
+  .collectFrom([scriptUtxo], spend_redeemer)
   .mintAssets({[claim_unit]: -1n,}, mint_redeemer)
-  //.withdraw(address, {lovelace: amt}, mint_redeemer)
+  .payToAddress(address, {lovelace: amt + claim_utxo.assets.lovelace},)
   .attachMintingPolicy(minting_script)
-  .complete()
+  .complete({change: {address: minting_address}})
 
 
 const claim_signedTx = await claim_tx.sign().complete();

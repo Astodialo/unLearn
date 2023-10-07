@@ -9,6 +9,7 @@ import {
   TxHash, 
   sign, 
   Constr, 
+  OutputData,
   fromHex, 
   toHex,
   toLabel,
@@ -33,7 +34,7 @@ const wallet = await lucid.selectWalletFromSeed(await Deno.readTextFile("./stuff
 const { paymentCredential} = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
 );
-const address = lucid.wallet.address();
+const address = await lucid.wallet.address();
 const [utxo] = await lucid.wallet.getUtxos();
 
 const genesis_utxo = new Constr(0, [
@@ -64,13 +65,19 @@ console.log(Data.from(genesis_redeemer))
 console.log(Data.from(genesis_datum))
 console.log(minting_script)
 
+const change = {
+  change: {
+    address: minting_address,
+  },
+}
+
 const tx = await lucid
   .newTx()
   .collectFrom([utxo])
   .mintAssets({ [unArxh]: 1n }, genesis_redeemer,)
-  .payToAddressWithData(minting_address, {inline: genesis_datum}, {[unArxh]: 1n, lovelace: 10000000n, })
+  .payToAddressWithData(minting_address, {inline: genesis_datum}, {[unArxh]: 1n, lovelace: 10_000_000n, })
   .attachMintingPolicy( minting_script,)
-  .complete()
+  .complete({change: {address: address}})
 
 const signedTx = await tx.sign().complete();
 const txHash = await signedTx.submit();

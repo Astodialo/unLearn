@@ -122,10 +122,6 @@ test equal_dtms(){
   count_b4 == count_after - 1 
 }
 
-test correct_names(){
- todo 
-}
-
 test burn_ass(){
   let output = test_output() 
   let val = output.value

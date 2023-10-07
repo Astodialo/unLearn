@@ -1,4 +1,5 @@
 use aiken/bytearray
+use aiken/cbor
 use aiken/list
 use aiken/string
 use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, Mint, Spend, OutputReference, find_input}
@@ -7,36 +8,39 @@ use aiken/transaction/credential
 use unlearn
 
 type State {
-  count: Int
+  count: Int,
 }
 
 type MintingAction {
   Genesis
+  Mintin
   Update
   Withdraw
 }
 
 type Metadata {
-  name:     ByteArray,
+  name: ByteArray,
   proposal: ByteArray,
-  results:  ByteArray,
-  state:    ByteArray,
-  amount:   Int
+  results: ByteArray,
+  state: ByteArray,
+  amount: Int,
 }
 
 validator(utxo_ref: OutputReference) {
   fn prop_mint(redeemer: MintingAction, ctx: ScriptContext) -> Bool {
+    trace "ho"
+    
+    expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
+    let Transaction {inputs, outputs, mint, ..} = txInfo
+    let mint = value.from_minted_value(mint)
+
     when redeemer is {
       Genesis -> {
-        trace "hi"
-        expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
-        let Transaction {inputs, outputs, mint, ..} = txInfo
-        let mint = value.from_minted_value(mint)
-
         expect list.any(inputs, fn(input) { input.output_reference == utxo_ref })?
 
         expect [Output {datum: InlineDatum(output_datum), value, .. }] = list.filter(outputs, fn(output) {
           output.address.payment_credential == credential.ScriptCredential(own_policy)
+          && value.quantity_of(output.value, own_policy, unlearn.master_token_name) == 1
         })
 
         expect unlearn.value_contains_master_token(mint, own_policy)
@@ -49,11 +53,61 @@ validator(utxo_ref: OutputReference) {
 
         (initial_state == output_state)?
       }
-      Update -> {
-        expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
-        let Transaction {outputs, mint, ..} = txInfo
-        let mint = value.from_minted_value(mint)
+      Mintin -> {
+        trace "hi"
+        
+        expect Some(unArxh_input) = list.find(inputs, fn(input) {
+          let q = value.quantity_of(input.output.value, own_policy, unlearn.master_token_name,)
 
+          if (q == 1) {
+            trace "there is input"
+            True
+          } else {
+            trace "there is no input"
+            False
+          }
+
+          //q == 1 
+        })
+
+        expect Some(unArxh_output) = list.find(outputs, fn(output: Output) { 
+          let q = value.quantity_of(output.value, own_policy, unlearn.master_token_name,)
+
+          if (q == 1) {
+            trace "there is output"
+            True
+          }else {
+            trace "there is no output"
+            False
+          }
+
+          //q == 1
+        })
+
+        expect InlineDatum(in_dtm) = unArxh_input.output.datum 
+        expect InlineDatum(out_dtm) = unArxh_output.datum
+
+        expect State { count: count_b4 }: State = in_dtm 
+        expect State { count: count_after }: State = out_dtm 
+
+        (count_b4 == count_after - 1)? 
+        && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
+
+        //expect [updater_output] =  list.filter(outputs, fn(output: Output) {
+        //  output.address == updater_addr
+        //})
+        //let Output { datum: update_datum, value: out_value, .. } = updater_output
+        //expect InlineDatum(updt_datum) = update_datum
+       
+        //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
+
+        //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
+        //results == "" &&
+        //state == "INIT" &&
+        //amount == 0
+      }
+      Update -> {
+        trace "hi"
         expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
         let (policy, _, amt) = ass
 
@@ -69,10 +123,7 @@ validator(utxo_ref: OutputReference) {
         unlearn.valEq("_R", burn_ass, value.flatten(out_value))
       }
       Withdraw -> {
-        expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
-        let Transaction {outputs, mint, ..} = txInfo
-        let mint = value.from_minted_value(mint)
-
+        trace "hi"
         expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
           let (policy, _, amt) = ass
 
@@ -97,17 +148,41 @@ validator(utxo_ref: OutputReference) {
         
         expect Metadata {amount, ..}: Metadata = ref_datum
               
-        expect [output] = outputs
-        
-        let Output {value, ..} = output
+        let val_from_outputs = 0
+        let user_lvlc_input = 0
 
-        value.lovelace_of(value) == amount 
-        && list.length(value.flatten(value.without_lovelace(value))) == 0 
+        let user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
+          trace "beep"
+          if (input.output.address.payment_credential != credential.ScriptCredential(own_policy)) {
+            trace "boop" 
+            user_lvlc_input + value.lovelace_of(input.output.value)
+            
+          }else {
+            user_lvlc_input 
+          }
+        })
+
+
+        let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
+          let Output {address, value, ..} = output
+
+          trace "yeet"
+          if (address.payment_credential != credential.ScriptCredential(own_policy)) {
+            trace "yoot" 
+            val_from_outputs + value.lovelace_of(value)
+          }else {
+            val_from_outputs
+          }
+        })
+        
+        trace "hi"
+        //let Output {value, ..} = output
+        (val_from_outputs == user_lvlc_input + amount)? 
+        //&& (list.length(value.flatten(value.without_lovelace(value))) == 0)? 
       }
     }
   }
-  fn spend(datum: State, redeemer: Int, ctx: ScriptContext) -> Bool {
-    trace "hi"
+  fn spend(datum, redeemer: MintingAction, ctx: ScriptContext) -> Bool {
     expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
     let Transaction {inputs, outputs, mint, ..} = txInfo
     let mint = value.from_minted_value(mint)
@@ -119,54 +194,131 @@ validator(utxo_ref: OutputReference) {
 
     expect credential.ScriptCredential(own_policy) = payment_credential 
 
-    expect Some(unArxh_input) = list.find(inputs, fn(input) {
-      let q = value.quantity_of(input.output.value, own_policy, unlearn.master_token_name,)
+    when redeemer is { 
+      Genesis -> { False }
+      Mintin -> {
+        trace "hi"
 
-      if (q == 1) {
-        trace "there is input"
-        True
-      } else {
-        trace "there is no input"
-        False
+        expect Some(unArxh_output) = list.find(outputs, fn(output: Output) { 
+          let q = value.quantity_of(output.value, own_policy, unlearn.master_token_name,)
+
+          if (q == 1) {
+            trace "there is output"
+            True
+          }else {
+            trace "there is no output"
+            False
+          }
+
+          //q == 1
+        })
+
+        expect InlineDatum(out_dtm) = unArxh_output.datum
+
+        expect State { count: count_b4 }: State = datum 
+        expect State { count: count_after }: State = out_dtm 
+
+        (count_b4 == count_after - 1)? 
+        //&& unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy) 
+
+        //expect [updater_output] =  list.filter(outputs, fn(output: Output) {
+        //  output.address == updater_addr
+        //})
+        //let Output { datum: update_datum, value: out_value, .. } = updater_output
+        //expect InlineDatum(updt_datum) = update_datum
+        
+        //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
+
+        //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
+        //results == "" &&
+        //state == "INIT" &&
+        //amount == 0
       }
+      Update -> {
+        trace "hi"
+        expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
+          let (policy, _, amt) = ass
 
-      //q == 1 
-    })
+          policy == own_policy && amt == -1
+      })
 
-    expect Some(unArxh_output) = list.find(outputs, fn(output: Output) { 
-      let q = value.quantity_of(output.value, own_policy, unlearn.master_token_name,)
+        expect [own_output] = list.filter(outputs, fn(output) -> Bool {
+          output.address.payment_credential == credential.ScriptCredential(own_policy)
+        })
 
-      if (q == 1) {
-        trace "there is output"
-        True
-      }else {
-        trace "there is no output"
-        False
+        let Output {value: out_value, ..} = own_output
+
+        (unlearn.valEq("_R", burn_ass, value.flatten(out_value)))?
       }
+      Withdraw -> {
+        expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
+          let (policy, _, amt) = ass
 
-      //q == 1
-    })
+          if (policy == own_policy && amt == -1) {
+            trace "ass"
+            True
+          }else {False}
+        })
 
-    expect InlineDatum(in_dtm) = unArxh_input.output.datum 
-    expect InlineDatum(out_dtm) = unArxh_output.datum
+        let ref_input = txInfo.reference_inputs
+          |> list.map(_, fn(input: Input) {
+            let Input {output, ..} = input
 
-    expect State { count: count_b4 }: State = in_dtm 
-    expect State { count: count_after }: State = out_dtm 
+            output
+          })
+          |> list.filter(_, fn(output: Output) -> Bool {
+            let Output {value, ..} = output
 
-    (count_b4 == count_after - 1)? 
-    //&& unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy) 
+            if (unlearn.valEq("_Claim", burn_ass, value.flatten(value))) {
+              trace "ref_input"
+              True
+            }else {False}
+          })
 
-    //expect [updater_output] =  list.filter(outputs, fn(output: Output) {
-    //  output.address == updater_addr
-    //})
-    //let Output { datum: update_datum, value: out_value, .. } = updater_output
-    //expect InlineDatum(updt_datum) = update_datum
-    
-    //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
+        expect [ref_input] = ref_input
 
-    //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
-    //results == "" &&
-    //state == "INIT" &&
-    //amount == 0
+        expect InlineDatum(ref_datum) = ref_input.datum
+
+        trace cbor.diagnostic(ref_datum)
+        
+        expect Metadata {amount, ..}: Metadata = ref_datum
+              
+        trace cbor.diagnostic(amount)
+        
+        let val_from_outputs = 0
+        let user_lvlc_input = 0
+
+        let  user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
+          trace "beep"
+          if (input.output.address.payment_credential != credential.ScriptCredential(own_policy)) {
+            trace "boop" 
+            user_lvlc_input + value.lovelace_of(input.output.value)
+            
+          }else {
+            user_lvlc_input 
+          }
+        })
+
+
+        let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
+          let Output {address, value, ..} = output
+
+          trace "yeet"
+          if (address.payment_credential != credential.ScriptCredential(own_policy)) {
+            trace "yoot" 
+            val_from_outputs + value.lovelace_of(value)
+          }else {
+            val_from_outputs
+          }
+        })
+        
+        trace ""
+        trace cbor.diagnostic(val_from_outputs)
+        trace "hi"
+        //let Output {value, ..} = output
+        (val_from_outputs == user_lvlc_input + amount)? 
+        //&& (list.length(value.flatten(value.without_lovelace(value))) == 0)? 
+      }
+    }
   }
 }

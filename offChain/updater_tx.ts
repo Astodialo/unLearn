@@ -68,15 +68,18 @@ const res_unit = unit + fromText("_R")
 
 const [utxo] = await lucid.utxosAtWithUnit(minting_address, unit) 
 
-const datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
+const datum = Data.from(utxo.datum!)
 
 const mint_redeemer = Data.to(new Constr(2, []));
+const spend_redeemer = Data.to(new Constr(1, [new Constr(2, [])]));
 
-const [name, proposal, _results, _state, _amount] = datum.fields
+const [name, _proposal, _results, _state, _amount] = datum.fields
+
+const proposal = prompt("proposal:")
 
 const nu_datum = Data.to(new Constr(0, [
  name,
- proposal,
+ fromText("proposal"),
  fromText("whatever"), 
  fromText("COMPLETE"),
  100n
@@ -85,16 +88,20 @@ const nu_datum = Data.to(new Constr(0, [
 console.log("\nold proposal datum:")
 console.log(datum)
 console.log("\nnew proposal datum:")
+console.log(nu_datum)
 console.log(Data.from(nu_datum))
-console.log("\nredeemer:")
+console.log("\nmint redeemer:")
+console.log(mint_redeemer)
 console.log(Data.from(mint_redeemer))
+console.log("\nspend redeemer:")
+console.log(spend_redeemer)
+console.log(Data.from(spend_redeemer))
 
 const updater_tx = await lucid
   .newTx()
-  .collectFrom([utxo], mint_redeemer)
+  .collectFrom([utxo], spend_redeemer)
   .mintAssets({[res_unit]: -1n,}, mint_redeemer)
   .payToAddressWithData(minting_address, {inline: nu_datum}, {[unit]: 1n,})
-  //.attachSpendingValidator(updater_script)
   .attachMintingPolicy(minting_script)
   .complete()
   
