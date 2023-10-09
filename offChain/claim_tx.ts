@@ -90,7 +90,7 @@ console.log(Data.from(mint_redeemer))
 console.log(minting_address)
 console.log(claim_utxo.assets.lovelace)
 console.log(amt)
-
+console.log(datum.fields[4])
 console.log("script utxos:")
 console.log (scriptUtxos)
 
