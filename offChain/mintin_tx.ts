@@ -76,12 +76,15 @@ const unit = policyId + fromText("proposal_" + String(count))
 const res_unit = policyId + fromText("proposal_" + String(count) + "_R")
 const claim_unit = policyId + fromText("proposal_" + String(count) + "_Claim")
 
+const proposal = prompt("proposal:");
+const amount = prompt("amount:")
+
 const prop_datum = Data.to(new Constr(0, [
   fromText("proposal_" + String(count)),
-  fromText(" "),
+  fromText(fromText(proposal)),
   fromText(" "),
   fromText("INIT"),
-  140000000n,
+  BigInt(amount) * 1_000_000n
 ])); 
 
 const nu_datum = Data.to(new Constr(0, [count + 1n]));
