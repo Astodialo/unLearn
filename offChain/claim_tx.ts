@@ -62,7 +62,6 @@ const minting_address = lucid.utils.validatorToAddress(minting_script)
 const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
 const prop_id = prompt("proposal number:");
-
 const proposal = policyId + fromText("proposal_") + fromText(prop_id)
 const claim_unit = proposal + fromText("_Claim")
 const unArxh = policyId + fromText("unArxh")
@@ -102,8 +101,9 @@ const claim_tx = await lucid
   .collectFrom([claim_utxo],)
   .mintAssets({[claim_unit]: -1n,}, mint_redeemer)
   .payToAddress(address, {lovelace: amt },)
+  .attachSpendingValidator(minting_script)
   .attachMintingPolicy(minting_script)
-  .complete({change: {address: minting_address}, coinSelection: false})
+  .complete({change: {address: minting_address, outputData: { inline: Data.to(fromText("banka"))}}, coinSelection: false})
 
 
 const claim_signedTx = await claim_tx.sign().complete();

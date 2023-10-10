@@ -213,7 +213,7 @@ validator(utxo_ref: OutputReference) {
       }
     }
   }
-  fn spend(_ , redeemer: MintingAction, ctx: ScriptContext) -> Bool {
+  fn spend(_datum , redeemer: MintingAction, ctx: ScriptContext) -> Bool {
     expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
     let Transaction {inputs, outputs, mint, ..} = txInfo
     let mint = value.from_minted_value(mint)
