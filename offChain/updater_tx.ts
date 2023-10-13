@@ -67,22 +67,31 @@ const unit = policyId + fromText("proposal_") + fromText(prop_id)
 const res_unit = unit + fromText("_R")
 
 const [utxo] = await lucid.utxosAtWithUnit(minting_address, unit) 
+const [res_utxo] = await lucid.utxosAtWithUnit(address, res_unit)
+const addr_utxos = await lucid.utxosAt(address)
 
 const datum = Data.from(utxo.datum!)
 
 const mint_redeemer = Data.to(new Constr(2, []));
 const spend_redeemer = Data.to(new Constr(1, [new Constr(2, [])]));
 
-const [name, _proposal, _results, _state, _amount] = datum.fields
+const [name, proposal, results, _state, amount] = datum.fields
 
-const proposal = prompt("proposal:")
+const vote = prompt("type y for yes, n for no:")
+let state = ""
+
+if (vote == "y") {
+  state = fromText("COMPLETE")
+} else {
+  state = fromText("CANCELED")
+}
 
 const nu_datum = Data.to(new Constr(0, [
  name,
- fromText("proposal"),
- fromText("whatever"), 
- fromText("COMPLETE"),
- 100n
+ proposal,
+ results,
+ state,
+ amount
 ])); 
 
 console.log("\nold proposal datum:")
@@ -100,10 +109,12 @@ console.log(Data.from(spend_redeemer))
 const updater_tx = await lucid
   .newTx()
   .collectFrom([utxo], spend_redeemer)
+  .collectFrom([res_utxo],)
+  .collectFrom(addr_utxos)
   .mintAssets({[res_unit]: -1n,}, mint_redeemer)
   .payToAddressWithData(minting_address, {inline: nu_datum}, {[unit]: 1n,})
   .attachMintingPolicy(minting_script)
-  .complete()
+  .complete({change: {address: address}, coinSelection: false})
   
 const updater_signedTx = await updater_tx.sign().complete();
 
