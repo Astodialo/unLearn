@@ -90,20 +90,28 @@ validator(utxo_ref: OutputReference) {
         expect State { count: count_b4 }: State = in_dtm 
         expect State { count: count_after }: State = out_dtm 
 
-        (count_b4 == count_after - 1)? 
-        && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
+        expect Some(proposal_output) = list.find(outputs, fn(output: Output) {
+          let q = value.quantity_of(output.value, own_policy, bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))))
 
-        //expect [updater_output] =  list.filter(outputs, fn(output: Output) {
-        //  output.address == updater_addr
-        //})
-        //let Output { datum: update_datum, value: out_value, .. } = updater_output
-        //expect InlineDatum(updt_datum) = update_datum
+          if (q == 1) {
+            trace "proposal out"
+            True
+          }else {
+            trace "proposal not out"
+            False
+          }
+        }) 
+
+        let Output { datum: proposal_datum, value: out_value, .. } = proposal_output
+        expect InlineDatum(prpsl_datum) = proposal_datum
        
-        //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
+        expect Metadata { name, proposal, results, state, amount }: Metadata = prpsl_datum
 
-        //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
+        //name == <Right>)) &&
         //results == "" &&
-        //state == "INIT" &&
+        state == "INIT"
+        && (count_b4 == count_after - 1)? 
+        && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
         //amount == 0
       }
       Update -> {
@@ -146,7 +154,7 @@ validator(utxo_ref: OutputReference) {
 
         expect InlineDatum(ref_datum) = ref_input.datum
         
-        expect Metadata {amount, ..}: Metadata = ref_datum
+        expect Metadata {amount, state, ..}: Metadata = ref_datum
               
         expect [burn_input_output] = inputs 
           |> list.map(_, fn(input: Input) {
@@ -172,33 +180,10 @@ validator(utxo_ref: OutputReference) {
         expect [initiator_input] = list.filter(inputs, fn(input: Input) -> Bool {
           input.output.address.payment_credential == burn_input_output.address.payment_credential
         })
-        //let  user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
-         // trace "beep"
-         // if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
-         //   trace "initiator input" 
-         //   trace cbor.diagnostic(value.lovelace_of(input.output.value))
-
-         //   user_lvlc_input + value.lovelace_of(input.output.value)
-         // }else {
-         //   user_lvlc_input 
-         // }
-        //})
-
 
         expect [initiator_output] = list.filter(outputs, fn(output: Output) -> Bool{
           output.address.payment_credential == burn_input_output.address.payment_credential
         })
-        //let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
-        //  trace "yeet"
-        //  if (output.address.payment_credential == burn_input_output.address.payment_credential) {
-        //    trace "initiator output" 
-        //    trace cbor.diagnostic(value.lovelace_of(output.value))
-
-        //    val_from_outputs + value.lovelace_of(output.value)
-        //  }else {
-        //    val_from_outputs
-        //  }
-        //})
         
         let user_lvlc_input = value.lovelace_of(initiator_input.output.value)
         let val_from_outputs = value.lovelace_of(initiator_output.value)
@@ -207,8 +192,10 @@ validator(utxo_ref: OutputReference) {
         trace cbor.diagnostic(user_lvlc_input + amount)
         trace "lvlc output"
         trace cbor.diagnostic(val_from_outputs)
+        trace cbor.diagnostic(val_from_outputs)
         //let Output {value, ..} = output
-        (val_from_outputs == user_lvlc_input + amount)? 
+        (val_from_outputs == user_lvlc_input + amount)?
+        && (state == "COMPLETE")? 
         //&& (list.length(value.flatten(value.without_lovelace(value))) == 0)? 
       }
     }
@@ -264,21 +251,30 @@ validator(utxo_ref: OutputReference) {
         expect State { count: count_b4 }: State = in_dtm 
         expect State { count: count_after }: State = out_dtm 
 
-        (count_b4 == count_after - 1)? 
-        //&& unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy) 
 
-        //expect [updater_output] =  list.filter(outputs, fn(output: Output) {
-        //  output.address == updater_addr
-        //})
-        //let Output { datum: update_datum, value: out_value, .. } = updater_output
-        //expect InlineDatum(updt_datum) = update_datum
-        
-        //expect Metadata { name, proposal, results, state, amount }: Metadata = updt_datum
+        expect Some(proposal_output) = list.find(outputs, fn(output: Output) {
+          let q = value.quantity_of(output.value, own_policy, bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))))
 
-        //name == bytearray.concat(name_b4, bytearray.from_string(string.from_int(count_b4))) &&
+          if (q == 1) {
+            trace "proposal out"
+            True
+          }else {
+            trace "proposal not out"
+            False
+          }
+        }) 
+
+        let Output { datum: proposal_datum, value: out_value, .. } = proposal_output
+        expect InlineDatum(prpsl_datum) = proposal_datum
+       
+        expect Metadata { name, proposal, results, state, amount }: Metadata = prpsl_datum
+
+        //name == <Right>)) &&
         //results == "" &&
-        //state == "INIT" &&
-        //amount == 0
+        state == "INIT"
+        && (count_b4 == count_after - 1)? 
+        && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
+
       }
       Update -> {
         trace "hi"
@@ -348,51 +344,29 @@ validator(utxo_ref: OutputReference) {
 
         trace cbor.diagnostic(ref_datum)
         
-        expect Metadata {amount, ..}: Metadata = ref_datum
+        expect Metadata {amount, state, ..}: Metadata = ref_datum
               
         trace cbor.diagnostic(amount)
 
         expect [initiator_input] = list.filter(inputs, fn(input: Input) -> Bool {
           input.output.address.payment_credential == burn_input_output.address.payment_credential
         })
-        //let  user_lvlc_input = list.foldl(inputs, user_lvlc_input, fn(input: Input, counter: Int) -> Int {
-         // trace "beep"
-         // if (input.output.address.payment_credential == burn_input_output.address.payment_credential) {
-         //   trace "initiator input" 
-         //   trace cbor.diagnostic(value.lovelace_of(input.output.value))
-
-         //   user_lvlc_input + value.lovelace_of(input.output.value)
-         // }else {
-         //   user_lvlc_input 
-         // }
-        //})
-
 
         expect [initiator_output] = list.filter(outputs, fn(output: Output) -> Bool{
           output.address.payment_credential == burn_input_output.address.payment_credential
         })
-        //let val_from_outputs = list.foldl(outputs, val_from_outputs, fn(output: Output, counter: Int) -> Int {
-        //  trace "yeet"
-        //  if (output.address.payment_credential == burn_input_output.address.payment_credential) {
-        //    trace "initiator output" 
-        //    trace cbor.diagnostic(value.lovelace_of(output.value))
-
-        //    val_from_outputs + value.lovelace_of(output.value)
-        //  }else {
-        //    val_from_outputs
-        //  }
-        //})
         
         let user_lvlc_input = value.lovelace_of(initiator_input.output.value)
         let val_from_outputs = value.lovelace_of(initiator_output.value)
 
         trace "lvlvc input"
         trace cbor.diagnostic(user_lvlc_input + amount)
-
         trace "lvlc output"
         trace cbor.diagnostic(val_from_outputs)
+        trace cbor.diagnostic(state)
 
-        (val_from_outputs == user_lvlc_input + amount)? 
+        (val_from_outputs == user_lvlc_input + amount)?
+        && (state == "COMPLETE")? 
         //let Output {value, ..} = output
         //&& (list.length(value.flatten(value.without_lovelace(value))) == 0)? 
       }

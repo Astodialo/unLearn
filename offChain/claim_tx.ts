@@ -76,12 +76,22 @@ const [claim_utxo] = await lucid.utxosAtWithUnit(address, claim_unit)
 let scriptUtxos = await lucid.utxosAt(minting_address);
 scriptUtxos = scriptUtxos.filter(u => u.datum == Data.to(fromText("banka"))) 
 
+const  claim_assets = claim_utxo.assets
+const wo_claim_assets: Assets = {}
+
+for (let key in claim_assets){
+  if (key !== claim_unit){
+    wo_claim_assets[key] = claim_assets[key]
+  }
+}
+
 const datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
 
 const mint_redeemer = Data.to(new Constr(3, []));
 const spend_redeemer = Data.to(new Constr(1, [new Constr(3, [])]));
 
-let amt: bigint = datum.fields[4] + claim_utxo.assets.lovelace 
+let amt: bigint = datum.fields[4] //+ claim_utxo.assets.lovelace 
+wo_claim_assets.lovelace += amt
 
 console.log("withrawal amount:")
 console.log(amt)
@@ -94,14 +104,14 @@ console.log(datum.fields[4])
 console.log("script utxos:")
 console.log (scriptUtxos)
 
-
 const claim_tx = await lucid
   .newTx()
   .readFrom([utxo])
   .collectFrom(scriptUtxos, spend_redeemer)
   .collectFrom([claim_utxo],)
   .mintAssets({[claim_unit]: -1n,}, mint_redeemer)
-  .payToAddress(address, {lovelace: amt },)
+  //.payToAddress(address, {lovelace: claim_assets.lovelace})
+  .payToAddress(address, wo_claim_assets)
   .attachSpendingValidator(minting_script)
   .attachMintingPolicy(minting_script)
   .complete({change: {address: minting_address, outputData: { inline: Data.to(fromText("banka"))}}, coinSelection: false})
