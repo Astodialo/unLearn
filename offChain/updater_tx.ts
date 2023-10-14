@@ -75,7 +75,7 @@ const datum = Data.from(utxo.datum!)
 const mint_redeemer = Data.to(new Constr(2, []));
 const spend_redeemer = Data.to(new Constr(1, [new Constr(2, [])]));
 
-const [name, proposal, results, _state, amount] = datum.fields
+const [proposal, _state, amount] = datum.fields
 
 const vote = prompt("type y for yes, n for no:")
 let state = ""
@@ -87,9 +87,7 @@ if (vote == "y") {
 }
 
 const nu_datum = Data.to(new Constr(0, [
- name,
  proposal,
- results,
  state,
  amount
 ])); 

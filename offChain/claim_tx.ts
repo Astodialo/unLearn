@@ -74,7 +74,7 @@ const [unArxh_utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh)
 const [claim_utxo] = await lucid.utxosAtWithUnit(address, claim_unit)
 
 let scriptUtxos = await lucid.utxosAt(minting_address);
-scriptUtxos = scriptUtxos.filter(u => u.datum == Data.to(fromText("banka"))) 
+scriptUtxos = scriptUtxos.filter(u => u.datum == Data.to(fromText("Banka"))) 
 
 const  claim_assets = claim_utxo.assets
 const wo_claim_assets: Assets = {}
@@ -85,12 +85,12 @@ for (let key in claim_assets){
   }
 }
 
-const datum = Data.from(utxo.datum!) as Constr<[string, string, string, string, bigint]> 
+const datum = Data.from(utxo.datum!) as Constr<[string, string, bigint]> 
 
 const mint_redeemer = Data.to(new Constr(3, []));
 const spend_redeemer = Data.to(new Constr(1, [new Constr(3, [])]));
 
-let amt: bigint = datum.fields[4] //+ claim_utxo.assets.lovelace 
+let amt: bigint = datum.fields[2] //+ claim_utxo.assets.lovelace 
 wo_claim_assets.lovelace += amt
 
 console.log("withrawal amount:")
@@ -98,9 +98,9 @@ console.log(amt)
 console.log("\nredeemer:")
 console.log(Data.from(mint_redeemer))
 console.log(minting_address)
-console.log(claim_utxo.assets.lovelace)
+console.log(wo_claim_assets.lovelace)
 console.log(amt)
-console.log(datum.fields[4])
+console.log(datum.fields[2])
 console.log("script utxos:")
 console.log (scriptUtxos)
 
@@ -114,7 +114,7 @@ const claim_tx = await lucid
   .payToAddress(address, wo_claim_assets)
   .attachSpendingValidator(minting_script)
   .attachMintingPolicy(minting_script)
-  .complete({change: {address: minting_address, outputData: { inline: Data.to(fromText("banka"))}}, coinSelection: false})
+  .complete({change: {address: minting_address, outputData: { inline: Data.to(fromText("Banka"))}}, coinSelection: false})
 
 
 const claim_signedTx = await claim_tx.sign().complete();

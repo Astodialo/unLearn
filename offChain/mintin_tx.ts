@@ -80,9 +80,7 @@ const proposal = prompt("proposal:");
 const amount = prompt("amount:")
 
 const prop_datum = Data.to(new Constr(0, [
-  fromText("proposal_" + String(count)),
   fromText(fromText(proposal)),
-  fromText(" "),
   fromText("INIT"),
   BigInt(amount) * 1_000_000n
 ])); 
@@ -108,7 +106,7 @@ const mint_tx = await lucid
   .collectFrom([utxo], spend_redeemer)
   .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
   .payToAddressWithData(minting_address, {inline: nu_datum}, {[unArxh]: 1n, lovelace: utxo.assets.lovelace})
-  .payToAddressWithData(minting_address, {inline: Data.to(fromText("banka"))}, {lovelace:200_000_000n})
+  .payToAddressWithData(minting_address, {inline: Data.to(fromText("Banka"))}, {lovelace:200_000_000n})
   .payToAddressWithData(minting_address, { inline: prop_datum}, {[unit]: 1n,} )
   .payToAddress(address, {[res_unit]: 1n,})
   .payToAddress(address, {[claim_unit]: 1n,})
