@@ -68,9 +68,9 @@ const unArxh = policyId + fromText("unArxh")
 
 const [utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh) 
 
-let unArxh_datum = Data.from(utxo.datum!) as Constr<bigint>;
+let unArxh_datum = Data.from(utxo.datum!);
  
-let count = unArxh_datum.fields[0] as bigint;
+let count = unArxh_datum.fields[0];
 
 const unit = policyId + fromText("proposal_" + String(count))
 const res_unit = policyId + fromText("proposal_" + String(count) + "_R")
@@ -80,12 +80,15 @@ const proposal = prompt("proposal:");
 const amount = prompt("amount:")
 
 const prop_datum = Data.to(new Constr(0, [
-  fromText(fromText(proposal)),
+  fromText(proposal),
   fromText("INIT"),
   BigInt(amount) * 1_000_000n
 ])); 
 
-const nu_datum = Data.to(new Constr(0, [count + 1n]));
+const nu_datum = Data.to(new Constr(0, [
+  count + 1n,
+  unArxh_datum.fields[1]   
+]));
 
 const mint_redeemer = Data.to(new Constr(1, []));
 const spend_redeemer = Data.to(new Constr(1, [new Constr(1, [])]));

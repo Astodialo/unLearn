@@ -4,16 +4,20 @@ use aiken/list
 use aiken/string
 use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, Mint, Spend, OutputReference, find_input}
 use aiken/transaction/value
+use aiken/hash.{Blake2b_224, Hash}
 use aiken/transaction/credential
 use unlearn
+
+type VerificationKeyHash = Hash<Blake2b_224, credential.VerificationKey>
 
 // Type of the unArxh datum
 type State {
   count: Int,
+  results_addr: VerificationKeyHash 
 }
 
 // Type of the scripts redeemer
-type MintingAction {
+type Action {
   Genesis
   Mintin
   Update
@@ -28,7 +32,7 @@ type Metadata {
 }
 
 validator(utxo_ref: OutputReference) {
-  fn prop_mint(redeemer: MintingAction, ctx: ScriptContext) -> Bool {
+  fn prop_mint(redeemer: Action, ctx: ScriptContext) -> Bool {
     trace "ho"
     
     expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
@@ -51,12 +55,9 @@ validator(utxo_ref: OutputReference) {
 
         expect unlearn.value_has_only_master_and_lovelace(value, own_policy)
 
-        expect output_state: State = output_datum
-        
-        let initial_state =  State {count: 0}
-
-        // Check that the count field, inthe initial State in the unArxh datum, is 0.
-        (initial_state == output_state)?
+        expect State { count: count, results_addr: addr }: State = output_datum 
+        // Check that the count field, in the initial State in the unArxh datum, is 0.
+        (count == 0)?
       }
       Mintin -> {
         trace "hi"
@@ -87,13 +88,13 @@ validator(utxo_ref: OutputReference) {
           }
         })
 
-
         expect InlineDatum(in_dtm) = unArxh_input.output.datum 
         expect InlineDatum(out_dtm) = unArxh_output.datum
 
-        expect State { count: count_b4 }: State = in_dtm 
-        expect State { count: count_after }: State = out_dtm 
-
+        expect State { count: count_b4, results_addr: addr_b4 }: State = in_dtm 
+        expect State { count: count_after, results_addr: addr_after }: State = out_dtm 
+        
+        trace "whats up"
         // Find the output, that contains the proposal token.
         expect Some(proposal_output) = list.find(outputs, fn(output: Output) {
           let q = value.quantity_of(output.value, own_policy, bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))))
@@ -112,12 +113,29 @@ validator(utxo_ref: OutputReference) {
        
         expect Metadata { proposal, state, amount }: Metadata = prpsl_datum
 
+        // Find the output, that contains the proposal_R token.
+        expect Some(result_output) = list.find(outputs, fn(output: Output) {
+          let q = value.quantity_of(output.value, own_policy, bytearray.concat(bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), "_R"))
+
+          if (q == 1) {
+            trace "proposal_R out"
+            True
+          }else {
+            trace "proposal_R not out"
+            False
+          }
+        }) 
+
         // Check that the state field, in the datum of the proposal datum is set to "INIT"
         state == "INIT"
-        // Check that the count field, in the datum of the proposal datum, has increased
+        // Check that the count field, in the datum of unArxh , has increased
         && (count_b4 == count_after - 1)? 
+        // Check that the results_addr field, in the datum of unArxh, is the same
+        && (addr_b4 == addr_after)
         // Check that the minted tokens have the correct names
         && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
+        // Check that proposal_x_R is sent to the address stated in the unArxh token datum.
+        && (result_output.address.payment_credential == credential.VerificationKeyCredential(addr_b4))?
       }
       Update -> {
         trace "hi"
@@ -245,7 +263,7 @@ validator(utxo_ref: OutputReference) {
       }
     }
   }
-  fn spend(_datum , redeemer: MintingAction, ctx: ScriptContext) -> Bool {
+  fn spend(_datum , redeemer: Action, ctx: ScriptContext) -> Bool {
     expect ScriptContext { transaction: txInfo, purpose: Spend(own_reference) } = ctx
     let Transaction {inputs, outputs, mint, ..} = txInfo
     let mint = value.from_minted_value(mint)
@@ -292,13 +310,15 @@ validator(utxo_ref: OutputReference) {
           //q == 1
         })
 
-
         expect InlineDatum(in_dtm) = unArxh_input.output.datum 
         expect InlineDatum(out_dtm) = unArxh_output.datum
 
-        expect State { count: count_b4 }: State = in_dtm 
-        expect State { count: count_after }: State = out_dtm 
+        expect State { count: count_b4, results_addr: addr_b4 }: State = in_dtm 
+        trace "whats up"
+        expect State { count: count_after, results_addr: addr_after }: State = out_dtm 
 
+
+        trace "whats up"
         // Find the output, that contains the proposal token.
         expect Some(proposal_output) = list.find(outputs, fn(output: Output) {
           let q = value.quantity_of(output.value, own_policy, bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))))
@@ -317,12 +337,28 @@ validator(utxo_ref: OutputReference) {
        
         expect Metadata { proposal, state, amount }: Metadata = prpsl_datum
 
+        expect Some(result_output) = list.find(outputs, fn(output: Output) {
+          let q = value.quantity_of(output.value, own_policy, bytearray.concat(bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), "_R"))
+
+          if (q == 1) {
+            trace "proposal_R out"
+            True
+          }else {
+            trace "proposal_R not out"
+            False
+          }
+        }) 
+
         // Check that the state field, in the datum of the proposal datum is set to "INIT"
         state == "INIT"
-        // Check that the count field, in the datum of the proposal datum, has increased
+        // Check that the count field, in the datum of unArxh NFT, has increased
         && (count_b4 == count_after - 1)? 
+        // Check that the results_addr field, in the datum of unArxh NFT, is the same
+        && (addr_b4 == addr_after)
         // Check that the minted tokens have the correct names
         && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
+        // Check that proposal_x_R is sent to the address stated in the unArxh token datum.
+        && (result_output.address.payment_credential == credential.VerificationKeyCredential(addr_b4))?
       }
       Update -> {
         trace "hi"
