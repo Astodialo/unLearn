@@ -55,17 +55,18 @@ validator(utxo_ref: OutputReference) {
 
         expect unlearn.value_has_only_master_and_lovelace(value, own_policy)
 
-        expect State { count: count, results_addr: addr }: State = output_datum 
+        expect State { count: count, results_addr: _addr }: State = output_datum 
         // Check that the count field, in the initial State in the unArxh datum, is 0.
         (count == 0)?
       }
       Mintin -> {
         trace "hi"
         
-        // Find the input, that contains the unArxh token.
-        expect Some(unArxh_input) = list.find(inputs, fn(input) {
+        // Check that there is only one input from the validator and that it is the unArxh token.
+        expect [unArxh_input] = list.filter(inputs, fn(input) -> Bool {
           let q = value.quantity_of(input.output.value, own_policy, unlearn.master_token_name,)
 
+          input.output.address.payment_credential == credential.ScriptCredential(own_policy) &&
           if (q == 1) {
             trace "there is input"
             True
@@ -108,10 +109,10 @@ validator(utxo_ref: OutputReference) {
           }
         }) 
 
-        let Output { datum: proposal_datum, value: out_value, .. } = proposal_output
+        let Output { datum: proposal_datum, .. } = proposal_output
         expect InlineDatum(prpsl_datum) = proposal_datum
        
-        expect Metadata { proposal, state, amount }: Metadata = prpsl_datum
+        expect Metadata { state, .. }: Metadata = prpsl_datum
 
         // Find the output, that contains the proposal_R token.
         expect Some(result_output) = list.find(outputs, fn(output: Output) {
@@ -157,7 +158,7 @@ validator(utxo_ref: OutputReference) {
         })
 
 
-        let Output {value: out_value, datum: in_datum ..} = own_input.output
+        let Output {value: _in_value, datum: in_datum ..} = own_input.output
         let Output {value: out_value, datum: out_datum ..} = own_output
 
         expect InlineDatum(in_dtm) = in_datum
@@ -186,7 +187,7 @@ validator(utxo_ref: OutputReference) {
           policy == own_policy && amt == -1
         })
 
-        // Find the reference input that has the same policy and name with the burned asset
+        // Find the reference input that has the same policy and name, if not for the _Claim ending, with the burned asset
         let ref_input = txInfo.reference_inputs
           |> list.map(_, fn(input: Input) {
             let Input {output, ..} = input
@@ -206,7 +207,7 @@ validator(utxo_ref: OutputReference) {
         
         expect Metadata {amount, state, ..}: Metadata = ref_datum
               
-        // Find the input's output that contains the proposal-x-Claim that is burned. 
+        // Find the input's output that contains the proposal_x_Claim that is burned. 
         expect [burn_input_output] = inputs 
           |> list.map(_, fn(input: Input) {
             let Input {output, ..} = input
@@ -218,7 +219,7 @@ validator(utxo_ref: OutputReference) {
             let flat_val = value.flatten(value)
             list.any(flat_val, fn(ass: (value.PolicyId, value.AssetName, Int)) {
               let (policy, name, amt) = ass
-              let (burn_policy, burn_name, burn_amt) =burn_ass
+              let (_burn_policy, burn_name, _burn_amt) = burn_ass
 
               if (policy == own_policy &&  name == burn_name) {
                 trace "assinput"
@@ -232,7 +233,7 @@ validator(utxo_ref: OutputReference) {
           input.output.address.payment_credential ==  credential.ScriptCredential(own_policy)
         })
 
-        // Find the input from the address that burns the proposal-x-Claim
+        // Find the input from the address that burns the proposal_x_Claim
         expect [initiator_input] = list.filter(inputs, fn(input: Input) -> Bool {
           input.output.address.payment_credential == burn_input_output.address.payment_credential
         })
@@ -280,10 +281,11 @@ validator(utxo_ref: OutputReference) {
       Mintin -> {
         trace "hi"
         
-        // Find the input, that contains the unArxh token.
-        expect Some(unArxh_input) = list.find(inputs, fn(input) {
+        // Check that there is only one input from the validator and that it is the unArxh token.
+        expect [unArxh_input] = list.filter(inputs, fn(input) -> Bool {
           let q = value.quantity_of(input.output.value, own_policy, unlearn.master_token_name,)
 
+          input.output.address.payment_credential == credential.ScriptCredential(own_policy) &&
           if (q == 1) {
             trace "there is input"
             True
@@ -291,8 +293,6 @@ validator(utxo_ref: OutputReference) {
             trace "there is no input"
             False
           }
-
-          //q == 1 
         })
 
         // Find the output, that contains the unArxh token.
@@ -332,10 +332,10 @@ validator(utxo_ref: OutputReference) {
           }
         }) 
 
-        let Output { datum: proposal_datum, value: out_value, .. } = proposal_output
+        let Output { datum: proposal_datum, value: _out_value, .. } = proposal_output
         expect InlineDatum(prpsl_datum) = proposal_datum
        
-        expect Metadata { proposal, state, amount }: Metadata = prpsl_datum
+        expect Metadata { state, .. }: Metadata = prpsl_datum
 
         expect Some(result_output) = list.find(outputs, fn(output: Output) {
           let q = value.quantity_of(output.value, own_policy, bytearray.concat(bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), "_R"))
@@ -380,7 +380,7 @@ validator(utxo_ref: OutputReference) {
         })
 
 
-        let Output {value: out_value, datum: in_datum ..} = own_input.output
+        let Output {value: _in_value, datum: in_datum ..} = own_input.output
         let Output {value: out_value, datum: out_datum ..} = own_output
 
         expect InlineDatum(in_dtm) = in_datum
@@ -441,7 +441,7 @@ validator(utxo_ref: OutputReference) {
             let flat_val = value.flatten(value)
             list.any(flat_val, fn(ass: (value.PolicyId, value.AssetName, Int)) {
               let (policy, name, amt) = ass
-              let (burn_policy, burn_name, burn_amt) =burn_ass
+              let (_burn_policy, burn_name, _burn_amt) =burn_ass
 
               if (policy == own_policy &&  name == burn_name) {
                 trace "assinput"

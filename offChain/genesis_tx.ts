@@ -67,6 +67,7 @@ const genesis_datum = Data.to(new Constr(0, [
 console.log(Data.from(genesis_redeemer))
 console.log(Data.from(genesis_datum))
 console.log(minting_script) 
+console.log(paymentCredential)
 
 const change = {
   change: {

@@ -206,7 +206,7 @@ test lvlc_from_sender_utxo(){
 
   let outpt = test_output_lvlc()
 
-  let val_from_outputs = list.foldl([outpt], val_from_outputs, fn(output: Output, counter: Int) -> Int {
+  let val_from_outputs = list.foldl([outpt], val_from_outputs, fn(output: Output, _counter: Int) -> Int {
     let Output {address, value, ..} = output
 
     trace "yeet"
