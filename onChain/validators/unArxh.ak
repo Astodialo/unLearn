@@ -11,11 +11,6 @@ use unlearn
 type VerificationKeyHash = Hash<Blake2b_224, credential.VerificationKey>
 type ScriptHash = Hash<Blake2b_224, credential.Script>
 
-type ResultsAddr {
-  VerificationKeyHash
-  ScriptHash
-}
-
 // Type of the unArxh datum
 type State {
   count: Int,
@@ -152,7 +147,7 @@ validator(utxo_ref: OutputReference) {
         // Check that proposal_X is sent to the address stated in the unArxh token's datum as minting_addr.
         && (proposal_output.address.payment_credential = credential.ScriptCredential(ma_after))
         // Check that proposal_x_R is sent to the address stated in the unArxh token's datum as results_addr.
-        && (result_output.address.payment_credential == credential.ScriptCredential(own_policy))?     
+        && (result_output.address.payment_credential == credential.ScriptCredential(ra_after))?     
       }     
     }
   }
