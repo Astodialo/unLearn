@@ -263,11 +263,7 @@ validator(utxo_ref: OutputReference) {
     let mint = value.from_minted_value(mint)
 
     trace "hi"
-    expect Some(own_input) = inputs |> find_input(own_reference)
-
-    let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input
-
-    expect credential.ScriptCredential(own_policy) = payment_credential 
+    let own_policy = unlearn.policy_from_reference(own_reference, inputs)
 
     when redeemer is { 
       Arxh -> { 

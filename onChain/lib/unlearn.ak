@@ -1,8 +1,10 @@
 use aiken/dict
 use aiken/bytearray
 use aiken/list
-use aiken/transaction.{Input, Output, OutputReference}
+use aiken/transaction.{Input, Output, OutputReference, find_input}
 use aiken/transaction/value
+use aiken/transaction/credential
+
 
 pub const master_token_name: ByteArray = "unArxh"  
 
@@ -69,3 +71,12 @@ pub fn value_has_only_master_and_lovelace(val: value.Value, own_policy: value.Po
     policy1 == own_policy && quantity == 1 && token_name == master_token_name
   }
 }
+
+pub fn policy_from_reference(own_reference: OutputReference, inputs: List<Input> ) -> value.PolicyId {
+  expect Some(own_input) = inputs |> find_input(own_reference)
+  let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input
+  expect credential.ScriptCredential(own_policy) = payment_credential 
+
+  own_policy
+} 
+
