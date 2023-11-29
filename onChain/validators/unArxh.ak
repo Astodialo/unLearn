@@ -26,6 +26,7 @@ type State {
 // Type of the scripts redeemer
 type Action {
   Arxh
+  Mintin
 }
 
 // Type of the proposal-x datum
@@ -148,10 +149,10 @@ validator(utxo_ref: OutputReference) {
         && (ra_after == ra_b4)?
         // Check that the minted tokens have the correct names
         && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
-        // Check that proposal_x_R is sent to the address stated in the unArxh token's datum as results_addr.
-        && (result_output.address.payment_credential == credential.VerificationKeyCredential(ra_after) || credential.ScriptCredential(ra_after))?
         // Check that proposal_X is sent to the address stated in the unArxh token's datum as minting_addr.
         && (proposal_output.address.payment_credential = credential.ScriptCredential(ma_after))
+        // Check that proposal_x_R is sent to the address stated in the unArxh token's datum as results_addr.
+        && (result_output.address.payment_credential == credential.ScriptCredential(own_policy))?     
       }     
     }
   }
