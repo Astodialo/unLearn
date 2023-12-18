@@ -99,21 +99,21 @@ test find_input(){
 
 
 test equal_dtms(){
-  expect Some(unArxh_input) = list.find([test_input()], fn(input) {
+  expect Some(unApxn_input) = list.find([test_input()], fn(input) {
     let q = value.quantity_of(input.output.value, #"acab", "beef",)
 
     q == 40
   })
 
 
-  expect Some(unArxh_output) = list.find([test_output()], fn(output) {
+  expect Some(unApxn_output) = list.find([test_output()], fn(output) {
     let q = value.quantity_of(output.value, #"acab", "beef",)
 
     q == 40 
   })
   
-  expect InlineDatum(dtm) = unArxh_input.output.datum
-  expect InlineDatum(out_dtm) = unArxh_output.datum
+  expect InlineDatum(dtm) = unApxn_input.output.datum
+  expect InlineDatum(out_dtm) = unApxn_output.datum
 
   expect State { count: count_b4 }: State = dtm
   expect State { count: count_after }: State = out_dtm

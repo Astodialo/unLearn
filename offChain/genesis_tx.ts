@@ -42,26 +42,41 @@ const genesis_utxo = new Constr(0, [
   BigInt(utxo.outputIndex),
 ]);
 
-const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint");
+const prop_mint = blueprint.validators.find((v) => v.title === "prop_mint.prop_mint");
+const unApxn = blueprint.validators.find((v) => v.title === "unapxn.unApxn");
+
+
+const unApxn_script: MintingPolicy = {
+  type: "PlutusV2",
+  script: applyParamsToScript(
+    unApxn?.compiledCode,
+    [genesis_utxo],
+  ),
+}; 
+
+const unApxn_addr = lucid.utils.validatorToAddress(unApxn_script)
+const unApxn_pid = lucid.utils.mintingPolicyToId(unApxn_script)
+const { paymentCredential: unApxn_cred } = lucid.utils.getAddressDetails(unApxn_addr)
 
 const minting_script: MintingPolicy = {
   type: "PlutusV2",
   script: applyParamsToScript(
     prop_mint?.compiledCode,
-    [genesis_utxo],
+    [unApxn_cred!.hash],
   ),
 }; 
 
 const minting_address = lucid.utils.validatorToAddress(minting_script)
+const proposal_pid = lucid.utils.mintingPolicyToId(minting_script)
+const { paymentCredential: minting_cred } = lucid.utils.getAddressDetails(minting_address)
 
-const policyId = lucid.utils.mintingPolicyToId(minting_script)
-
-const unArxh = policyId + fromText("unArxh")
-
+const unApxn_nft = unApxn_pid + fromText("unApxn")
+console.log(minting_cred)
 const genesis_redeemer = Data.to(new Constr(0, []));
 const genesis_datum = Data.to(new Constr(0, [
   0n, 
-  paymentCredential!.hash
+  proposal_pid,
+  proposal_pid
 ]));
 
 console.log(Data.from(genesis_redeemer))
@@ -78,9 +93,9 @@ const change = {
 const tx = await lucid
   .newTx()
   .collectFrom([utxo])
-  .mintAssets({ [unArxh]: 1n }, genesis_redeemer,)
-  .payToAddressWithData(minting_address, {inline: genesis_datum}, {[unArxh]: 1n, lovelace: 10_000_000n, })
-  .attachMintingPolicy( minting_script,)
+  .mintAssets({ [unApxn_nft]: 1n }, genesis_redeemer,)
+  .payToAddressWithData(unApxn_addr, {inline: genesis_datum}, {[unApxn_nft]: 1n, lovelace: 10_000_000n, })
+  .attachMintingPolicy( unApxn_script,)
   .complete({change: {address: address}})
 
 const signedTx = await tx.sign().complete();
