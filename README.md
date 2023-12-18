@@ -2,11 +2,11 @@ unLearn at its current implementation is a modular proposal based community mana
 
 This members list can be updated, through proposals, to add, or remove members. A members list can be a few addresses of certain individuals, maybe a newly formed group, that would function basically like a multisig.
 
-[[assets/img/multisig unLearn.png]]
+![[./assets/img/multisig unLearn.png]]
 
 As well it allows for the same group to change this list and as it grows the members could be a few multisigs, or other unLearn instances, or any other script address voted by the community. With this we seek to empower communities to form and grow on their own but also create connections with who they wish. Creating a network of small interconnected groups to form a network neighbourhood, considered as a cultural sphere of influence between cooperating teams that have a common Treasury and a members list with the member addresses that need to reach consensus.
 
-[[assets/img/unLearn members transition.png]]
+![[./assets/img/unLearn members transition.png]]
 
 From that, further coalitions can happen of those network neighborhoods, creating an entity that could be considered an autonomous self-organized city on blockchain. Instead of centralizing to avoid the complexity under a state, either that be a nation or network, we should embrace that diversity and inherent complexity that comes with human organization and provide a framework for humanity to express itself. A network city governed by a coalition of its members neighbourhood councils of diverse in their governing methods, interests, cultures or any other reason groups would form and decide to represent that voice in that new paradigm of a city.
 
