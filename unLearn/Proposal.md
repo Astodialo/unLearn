@@ -1,1 +1,0 @@
-The proposal or a link to the proposal, inserted by the person minting in the [[proposal creation tx]].

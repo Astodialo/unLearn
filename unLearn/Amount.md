@@ -1,1 +1,0 @@
-The amount requested by the proposer. It is inserted by the person minting in the [[proposal creation tx]].
