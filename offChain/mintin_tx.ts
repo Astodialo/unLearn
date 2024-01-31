@@ -67,7 +67,7 @@ const policyId = lucid.utils.mintingPolicyToId(minting_script)
 const unArxh = policyId + fromText("unArxh")
 
 const [utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh) 
-
+console.log(utxo)
 let unArxh_datum = Data.from(utxo.datum!);
  
 let count = unArxh_datum.fields[0];

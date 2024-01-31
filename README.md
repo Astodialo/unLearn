@@ -1,20 +1,24 @@
-unLearn at its current implementation is a modular proposal based community management framework. It is meant to allow complex societal relationships to form between self organizing entities, either that be multisigs, or a confederation of multisigs and other governance scripts, like coin weighted voting, other unLearn instances, etc. The proposal part is available, open and permissionless for everyone. For the results consensus needs to be reached from a mutable members list, that each unLearn instance is connected with.
+unLearn: modular governance framework
 
-This members list can be updated, through proposals, to add, or remove members. A members list can be a few addresses of certain individuals, maybe a newly formed group, that would function basically like a multisig.
+At its core, unLearn embraces the ideas of decentralization, autonomy and self-management, empowering individuals and organizations to collaboratively shape their own collective future. Central to the unLearn freamework is the concept of fluidity and adaptability. Unlike traditional top-down governance models, unLearn starts with a foundation of fluidity, allowing for organic growth and evolution over time.
+
+An roganization can begin by utilizing a multisig, or any other consensus mechanism they'd like to use. This initial stage enables multiple parties to collectively manage resources and make decisions, fostering inclusivity and decentralization from the outset.
 
 ![Image](https://raw.githubusercontent.com/astodialo/unlearn/main/assets/img/multisig%20unLearn.png)
 
-As well it allows for the same group to change this list and as it grows the members could be a few multisigs, or other unLearn instances, or any other script address voted by the community. With this we seek to empower communities to form and grow on their own but also create connections with who they wish. Creating a network of small interconnected groups to form a network neighbourhood, considered as a cultural sphere of influence between cooperating teams that have a common Treasury and a members list with the member addresses that need to reach consensus.
+As the ecosystem matures, proposals for gevernance enhancements can be introduced amd voted upon by the community. Through this process, a more sophisticated governance structure can emerge, potentially involving a confederation of multisigs and other voting mechanisms.
+
+This confederation acts as a decentralized layer of governance, ensuring transparency and efficiency in decision-making. But the unLearn framework doesn't stop there. It also enables collaboration between different organization throughty the confederation of their blockchain addresses. By pooling resources and aligning their efforts, organizations can work together towards common goals in a decentralized manner.
 
 ![Image](https://raw.githubusercontent.com/astodialo/unlearn/main/assets/img/unLearn%20members%20transition.png)
 
-From that, further coalitions can happen of those network neighborhoods, creating an entity that could be considered an autonomous self-organized city on blockchain. Instead of centralizing to avoid the complexity under a state, either that be a nation or network, we should embrace that diversity and inherent complexity that comes with human organization and provide a framework for humanity to express itself. A network city governed by a coalition of its members neighbourhood councils of diverse in their governing methods, interests, cultures or any other reason groups would form and decide to represent that voice in that new paradigm of a city.
+In essence, the unLearn framework represents a new pradigm in governance. one that embraces decentralization, adaptability and collective action. It fosters a sence of community and collective responsibility. By combining principles of libertarion socialism with the technological capabilities of blockchain, unLearn paves the way for a more equitable, transparent and resilient future.
 
 The base of this organization system is the proposal system. The system is designed with composability and interoperability in mind, to facilitate diverse consensus reaching mechanisms, or proposal minting ones. This is facilitated by the unApxn NFT, which is minted in the genesis tx of each unLearn instance. It is locked in the Treasury and in its datum it contains the addresses of the components of the treasury and other information about the organization. The validator ensures that unApxn can be updated only after a proposal has been approved, meaning consensus has been reached.
 
 As stated anyone can make a proposal, through the proposal creation tx. The proposal and amount need to be inputted by the proposer. In this transaction 3 NFTs will be minted and aswell the state of unApxn will be updated, since it also acts as a counter for the proposals. The NFTs minted are:
 
-proposal_x: It is locked in the proposal minting validator and is the state of the proposal.
-proposal_x_R: It is locked in the Consensus validator and is used to update the results, when consensus is reached, in the state of the proposal(proposal_x).
-proposal_x_Claim: It is received by the proposer and it acts as a voucher with which they can claim the amount after the proposal state is set to complete, meaning consensus on approving it has been reached. If consensus is not reached then it is basically useless.
+```proposal_x```: It is locked in the proposal minting validator and is the state of the proposal.
+```proposal_x_R```: It is locked in the Consensus validator and is used to update the results, when consensus is reached, in the state of the proposal(proposal_x).
+```proposal_x_Claim```: It is received by the proposer and it acts as a voucher with which they can claim the amount after the proposal state is set to complete, meaning consensus on approving it has been reached. If consensus is not reached then it is basically useless.
 
