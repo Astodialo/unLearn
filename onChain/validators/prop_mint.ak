@@ -1,8 +1,7 @@
 use aiken/bytearray
-use aiken/cbor
 use aiken/list
 use aiken/string
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, Mint, Spend, OutputReference, find_input}
+use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, Mint, Spend}
 use aiken/transaction/value
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/transaction/credential
@@ -15,7 +14,7 @@ type ScriptHash = Hash<Blake2b_224, credential.Script>
 type State {
   count: Int,
   minting_addr: ScriptHash,
-  results_addr: ScriptHash 
+  results_addr: VerificationKeyHash 
 }
 
 // Type of the scripts redeemer
@@ -34,7 +33,6 @@ type Metadata {
 
 validator(unLearn_policy: ScriptHash) {
   fn prop_mint(redeemer: Action, ctx: ScriptContext) -> Bool {
-    trace "ho"
     
     expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } = ctx
     let Transaction {inputs, outputs, mint, ..} = txInfo
@@ -42,35 +40,19 @@ validator(unLearn_policy: ScriptHash) {
 
     when redeemer is {
       Mintin -> {
-        trace "hi"
         
         // Check that there is only one input from the validator and that it is the unApxn token.
         expect [unApxn_input] = list.filter(inputs, fn(input) -> Bool {
           let q = value.quantity_of(input.output.value, unLearn_policy, unlearn.master_token_name,)
 
-          input.output.address.payment_credential == credential.ScriptCredential(unLearn_policy) &&
-          if (q == 1) {
-            trace "there is input"
-            True
-          } else {
-            trace "there is no input"
-            False
-          }
+          input.output.address.payment_credential == credential.ScriptCredential(unLearn_policy) && (q == 1)
         })
 
         // Find the output, that contains the unApxn token.
         expect Some(unApxn_output) = list.find(outputs, fn(output: Output) { 
           let q = value.quantity_of(output.value, unLearn_policy, unlearn.master_token_name,)
 
-          if (q == 1) {
-            trace "there is output"
-            True
-          }else {
-            trace "there is no output"
-            False
-          }
-
-          //q == 1
+          q == 1
         })
 
         expect InlineDatum(in_dtm) = unApxn_input.output.datum 
@@ -87,7 +69,6 @@ validator(unLearn_policy: ScriptHash) {
             trace "proposal out"
             True
           }else {
-            trace "proposal not out"
             False
           } 
         }) 
@@ -105,7 +86,6 @@ validator(unLearn_policy: ScriptHash) {
             trace "proposal_R out"
             True
           }else {
-            trace "proposal_R not out"
             False
           }
         }) 
@@ -121,12 +101,11 @@ validator(unLearn_policy: ScriptHash) {
         // Check that the minted tokens have the correct names
         && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
         // Check that proposal_X is sent to the address stated in the unApxn token's datum as minting_addr.
-        && (proposal_output.address.payment_credential == credential.ScriptCredential(own_policy))?
+        && (proposal_output.address == credential.from_verification_key(ma_b4))?
         // Check that proposal_x_R is sent to the address stated in the unApxn token's datum as results_addr.
-        && (result_output.address.payment_credential == credential.ScriptCredential(own_policy))?     
+        && (result_output.address == credential.from_verification_key(ra_b4))?     
       }
       Update -> {
-        trace "hi"
         // Check that there is only one burned asset with the policy of the script 
         expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
         let (policy, _, amt) = ass
@@ -165,7 +144,6 @@ validator(unLearn_policy: ScriptHash) {
         && unlearn.valEq("_R", burn_ass, value.flatten(out_value))
       }
       Withdraw -> {
-        trace "hi"
 
         // Check that there is only one burned asset with the policy of the script 
         expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
@@ -205,12 +183,11 @@ validator(unLearn_policy: ScriptHash) {
             let Output {value, ..} = output
             let flat_val = value.flatten(value)
             list.any(flat_val, fn(ass: (value.PolicyId, value.AssetName, Int)) {
-              let (policy, name, amt) = ass
+              let (policy, name, _amt) = ass
               let (_burn_policy, burn_name, _burn_amt) = burn_ass
 
               if (policy == own_policy &&  name == burn_name) {
                 trace "assinput"
-                trace cbor.diagnostic(amt)
                 True
               }else {False}
             }) 
@@ -234,12 +211,6 @@ validator(unLearn_policy: ScriptHash) {
         let user_lvlc_input = value.lovelace_of(initiator_input.output.value)
         let val_from_outputs = value.lovelace_of(initiator_output.value)
         
-        trace "lvlvc input"
-        trace cbor.diagnostic(user_lvlc_input + amount)
-        trace "lvlc output"
-        trace cbor.diagnostic(val_from_outputs)
-        trace cbor.diagnostic(val_from_outputs)
-
         // The output to the address, is equal with the amount of lovelace inputted from the address plus the amount stated on the proposal-X datum.
         (val_from_outputs == user_lvlc_input + amount)?
         // Check that the state in proposal-x's datum is "COMPLETE"
@@ -256,13 +227,11 @@ validator(unLearn_policy: ScriptHash) {
     let Transaction {inputs, outputs, mint, ..} = txInfo
     let mint = value.from_minted_value(mint)
 
-    trace "hi"
     let own_policy = unlearn.policy_from_reference(own_reference, inputs)
 
     when redeemer is { 
       Mintin -> { False }
       Update -> {
-        trace "hi"
         // Check that there is only one burned asset with the policy of the script 
         expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
         let (policy, _, amt) = ass
@@ -301,7 +270,6 @@ validator(unLearn_policy: ScriptHash) {
         && unlearn.valEq("_R", burn_ass, value.flatten(out_value))
       }
       Withdraw -> {
-        trace "hi"
 
         // Check that there is only one burned asset with the policy of the script 
         expect [burn_ass] = list.filter(value.flatten(mint), fn(ass: (value.PolicyId, ByteArray, Int)) -> Bool {
@@ -341,12 +309,11 @@ validator(unLearn_policy: ScriptHash) {
             let Output {value, ..} = output
             let flat_val = value.flatten(value)
             list.any(flat_val, fn(ass: (value.PolicyId, value.AssetName, Int)) {
-              let (policy, name, amt) = ass
+              let (policy, name, _amt) = ass
               let (_burn_policy, burn_name, _burn_amt) =burn_ass
 
               if (policy == own_policy &&  name == burn_name) {
                 trace "assinput"
-                trace cbor.diagnostic(amt)
                 True
               }else {False}
             }) 
@@ -370,12 +337,6 @@ validator(unLearn_policy: ScriptHash) {
         let user_lvlc_input = value.lovelace_of(initiator_input.output.value)
         let val_from_outputs = value.lovelace_of(initiator_output.value)
         
-        trace "lvlvc input"
-        trace cbor.diagnostic(user_lvlc_input + amount)
-        trace "lvlc output"
-        trace cbor.diagnostic(val_from_outputs)
-        trace cbor.diagnostic(val_from_outputs)
-
         // The output to the address, is equal with the amount of lovelace inputted from the address plus the amount stated on the proposal-X datum.
         (val_from_outputs == user_lvlc_input + amount)?
         // Check that the state in proposal-x's datum is "COMPLETE"

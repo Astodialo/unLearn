@@ -1,65 +1,24 @@
-unLearn: The Network Neighborhood
+unLearn: modular governance framework
 
-The mission of unLearn is to empower people to work for a greater purpose. We believe that working for a boss is not the only way to make a living. We invite you to unLearn the traditional ideas of work and join us in the pursuit of freedom. Connect people not only through ideals but through creativity. Being part of unlearn is not only growing through your ideals but in part of a community, let’s build our neighbourhood. This is the unArxh...
+At its core, unLearn embraces the ideas of decentralization, autonomy and self-management, empowering individuals and organizations to collaboratively shape their own collective future. Central to the unLearn freamework is the concept of fluidity and adaptability. Unlike traditional top-down governance models, unLearn starts with a foundation of fluidity, allowing for organic growth and evolution over time.
 
-Our primary objectives are as follows:
+An roganization can begin by utilizing a multisig, or any other consensus mechanism they'd like to use. This initial stage enables multiple parties to collectively manage resources and make decisions, fostering inclusivity and decentralization from the outset.
 
-1. Establish a decentralized network neighborhood within the Cardano ecosystem, promoting collaboration, inclusivity, and community participation.
-2. Foster a secure environment where participants can freely express their ideas, engage in constructive discussions, and contribute to the growth of the Neighborhood.
-3. Ensure fairness in project selection, funding allocation, and decision-making processes, while actively promoting diversity and inclusion among participants.
-4. Safeguard communities against harmful actors, misinformation, and unethical practices, promoting accountability and responsible governance.
+![Image](https://raw.githubusercontent.com/astodialo/unlearn/main/assets/img/multisig%20unLearn.png)
 
+As the ecosystem matures, proposals for gevernance enhancements can be introduced amd voted upon by the community. Through this process, a more sophisticated governance structure can emerge, potentially involving a confederation of multisigs and other voting mechanisms.
 
-Our proposed funding mechanism operates as follows:
+This confederation acts as a decentralized layer of governance, ensuring transparency and efficiency in decision-making. But the unLearn framework doesn't stop there. It also enables collaboration between different organization throughty the confederation of their blockchain addresses. By pooling resources and aligning their efforts, organizations can work together towards common goals in a decentralized manner.
 
-1. Proposal Submission: Any individual or group can submit a proposal to the DAO. Proposals can be categorized as governance actions or funding proposals.
-2. NFT Minting: Once a proposal is submitted, it is minted as a non-fungible token (NFT) on the Cardano blockchain. This NFT serves as a unique identifier for the proposal throughout its lifecycle.
-3. Community Interaction: The proposal is shared with the community for interaction and feedback. Participants can provide suggestions, offer funding amounts, and express their opinions through discussion forums or other designated channels.
-4. Proposal Update: Based on community input, the proposal is updated to reflect the outcomes, such as suggested funding amounts or modifications to the governance action. These updates are stored within the NFT datum.
+![Image](https://raw.githubusercontent.com/astodialo/unlearn/main/assets/img/unLearn%20members%20transition.png)
 
-5. Voting: Members of the DAO participate in a voting process to determine the acceptance and funding allocation for each proposal. Voting can be conducted through a secure and transparent on-chain voting system.
-6. Proposal NFT Update: After the voting process concludes, the proposal NFT is updated with the voting results, including the approved funding amounts or the decision on the governance action.
-7. Claiming Funds: The proposer/holder of the proposal NFT can then claim the approved funding amount from the treasury using the proposal NFT as proof of approval.
+In essence, the unLearn framework represents a new pradigm in governance. one that embraces decentralization, adaptability and collective action. It fosters a sence of community and collective responsibility. By combining principles of libertarion socialism with the technological capabilities of blockchain, unLearn paves the way for a more equitable, transparent and resilient future.
 
-The unArxh NFT contains the counter (x) for the proposal NFTs and other general information about the Decentralized Autonomous Organization (DAO). It is the beginning and the history of the DAO, so it will be updated in every proposal NFT mint.
+The base of this organization system is the proposal system. The system is designed with composability and interoperability in mind, to facilitate diverse consensus reaching mechanisms, or proposal minting ones. This is facilitated by the unApxn NFT, which is minted in the genesis tx of each unLearn instance. It is locked in the Treasury and in its datum it contains the addresses of the components of the treasury and other information about the organization. The validator ensures that unApxn can be updated only after a proposal has been approved, meaning consensus has been reached.
 
-A user can mint a proposal NFT, by submitting their proposal and answers on the frontend. They wil then mint the 3 NFTs, proposal_x, proposal-x_R and proposal_x_Claim. 
+As stated anyone can make a proposal, through the proposal creation tx. The proposal and amount need to be inputted by the proposer. In this transaction 3 NFTs will be minted and aswell the state of unApxn will be updated, since it also acts as a counter for the proposals. The NFTs minted are:
 
-The NFT proposal_x will be locked in a validator script. It contains a list of "metadata" with the "name", "proposal" and "answers" fields filled in. The "results" field is empty. The list also contains the "state" which currently has the value "INIT" and the "datumAmount" which is set to 0.
+```proposal_x```: It is locked in the proposal minting validator and is the state of the proposal.
+```proposal_x_R```: It is locked in the Consensus validator and is used to update the results, when consensus is reached, in the state of the proposal(proposal_x).
+```proposal_x_Claim```: It is received by the proposer and it acts as a voucher with which they can claim the amount after the proposal state is set to complete, meaning consensus on approving it has been reached. If consensus is not reached then it is basically useless.
 
-```
-type Metadata {
-  name:     ByteArray,
-  proposal: ByteArray,
-  answers:  ByteArray,
-  results:  ByteArray,
-  state:    ByteArray,
-  amount:   Int
-} 
- ```
-
-The NFT proposal-x_R will be sent to the voting validator script. It will be used to validate the results and update the matadata on proposal_x.
-
-The NFT proposal_x_Claim will be sent to the user. After the proposal process is concluded, they can claim with this NFT the funds from the treasury validator.
-
-To pass the validation the NFT (proposal-x_R) must be burned, and the NFT (proposal-x) locked in the validator script must be locked again in the same validator script. The two NFTS must be equal (proposal-x + '_R' = proposal-x_R).
-
-The NFT (proposal_x) locked in the validator script now contains updated metadata with the  results field now filled in, and the datumState has the value "VOTE". The amount aswell gets filled in with the agreed upon amount.
-datumA.set('answers', user_input);
-The same happens for the submission of the results. The results will be added to the metadata (datum) of the NFT (proposal-x) locked in the validator script after passing the same validation this time for the results submission NFT (proposal-x_R)
-
-The NFT (proposal_x) locked in the validator script now contains updated metadata with the question, answers, results, and name fields filled in. The datumState has a value of either "COMPLETE" or "CANCELLED", and if the type field of the proposal is equal to "Funding", the datumAmount field is updated with the amount that was voted for.
-
-If the type field in the data of the NFT (proposal-x) locked in the script is equal to "Funding" and the state field is equal to "COMPLETE", the proposer can interact with the treasury script and claim the amount voted for. To do so, the proposer must pass the validation by burning the NFT (proposal_x_Claim). The output of the transaction must be only one, and the amount taken from the treasury script must be equal to the amount field in the data of the NFT (proposal-x) locked in the script. Additionally, the two NFTS must be equal (proposal-x + '_Claim' = proposal-x_Claim).
-
-TODO
-* Better Minting Process almost done boi
-* Change the minting validator so it can use a different appwallet if the current one is hacked. Even if the current wallet is hacked there is not a way to get any funds from the DOA since it would still go through the regular procedure and it can be voted cancelled.
-* Always include The 0.Cancell option as a voting choice.
-* Implement a collateral that the proposer needs to send when he creates a proposal of X amount
-* If datumState is "COMPLETE" then the proposer can get the collateral back, if the datumState is "CANCELED" then it is locked/sent to a treasury
-* And the whole voting thing ofc ٩(◕‿◕)۶
-* Voting system results must be read as a reference output to update the results (datumR) field
-* Frontend work (A lot)
-* OffChain forum with the posibility to push a forum post to an onchain proposal
-* Provide option for different ways of funding

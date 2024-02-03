@@ -1,8 +1,7 @@
 use aiken/bytearray
-use aiken/cbor
 use aiken/list
 use aiken/string
-use aiken/transaction.{ScriptContext, Transaction, Input, Output, InlineDatum, Mint, Spend, OutputReference, find_input}
+use aiken/transaction.{ScriptContext, Transaction, Output, InlineDatum, Mint, Spend, OutputReference}
 use aiken/transaction/value
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/transaction/credential
@@ -15,7 +14,7 @@ type ScriptHash = Hash<Blake2b_224, credential.Script>
 type State {
   count: Int,
   minting_addr: ScriptHash,
-  results_addr: ScriptHash 
+  results_addr: VerificationKeyHash 
 }
 
 // Type of the scripts redeemer
@@ -43,7 +42,7 @@ validator(utxo_ref: OutputReference) {
         expect list.any(inputs, fn(input) { input.output_reference == utxo_ref })?
 
         // Check in the outputs, that only one token that goes to the unApxn validator and that it is the unLearn NFT.
-        expect [Output {datum: InlineDatum(output_datum), value, .. }] = list.filter(outputs, fn(output) {
+        expect [Output {datum: InlineDatum(output_datum), .. }] = list.filter(outputs, fn(output) {
           output.address.payment_credential == credential.ScriptCredential(own_policy)
           && value.quantity_of(output.value, own_policy, unlearn.master_token_name) == 1
        }) 
@@ -52,7 +51,7 @@ validator(utxo_ref: OutputReference) {
         expect unlearn.value_contains_master_token(mint, own_policy)
 
         // Check that the count field, in the initial State in the unApxn datum, is 0.
-        expect State { count: count, minting_addr: m_addr, results_addr: r_addr }: State = output_datum 
+        expect State { count: count, minting_addr: _m_addr, results_addr: _r_addr }: State = output_datum 
 
         (count == 0)?
         }
@@ -69,7 +68,6 @@ validator(utxo_ref: OutputReference) {
     when redeemer is {
       Arxh -> { False }
       Mintin -> {
-        trace "hi"
         
         // Check that there is only one input from the validator and that it is the unApxn token.
         expect [unApxn_input] = list.filter(inputs, fn(input) -> Bool {
@@ -80,7 +78,6 @@ validator(utxo_ref: OutputReference) {
             trace "there is input"
             True
           } else {
-            trace "there is no input"
             False
           }
         })
@@ -93,7 +90,6 @@ validator(utxo_ref: OutputReference) {
             trace "there is output"
             True
           }else {
-            trace "there is no output"
             False
           }
 
@@ -114,7 +110,6 @@ validator(utxo_ref: OutputReference) {
             trace "proposal out"
             True
           }else {
-            trace "proposal not out"
             False
           } 
         }) 
@@ -132,7 +127,6 @@ validator(utxo_ref: OutputReference) {
             trace "proposal_R out"
             True
           }else {
-            trace "proposal_R not out"
             False
           }
         }) 

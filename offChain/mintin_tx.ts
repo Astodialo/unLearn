@@ -40,7 +40,7 @@ const {validator, validatorHash, validatorAddress, outRef}: Genesis = JSON.parse
 
 const wallet = await lucid.selectWalletFromSeed(await Deno.readTextFile("./stuff/seed"));
 
-const { paymentCredential} = lucid.utils.getAddressDetails(
+const { paymentCredential: user_cred} = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
 );
 const address = await lucid.wallet.address();
@@ -50,31 +50,45 @@ const genesis_utxo = new Constr(0, [
   BigInt(outRef.index),
 ]);
 
-const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint");
+const unApxn = blueprint.validators.find((v) => v.title === "unapxn.unApxn");
+const prop_mint = blueprint.validators.find((v) => v.title === "prop_mint.prop_mint");
+
+const unApxn_script: MintingPolicy = {
+  type: "PlutusV2",
+  script: applyParamsToScript(
+    unApxn?.compiledCode,
+    [genesis_utxo],
+  ),
+}; 
+
+const unApxn_addr = lucid.utils.validatorToAddress(unApxn_script)
+const unApxn_pid = lucid.utils.mintingPolicyToId(unApxn_script)
+const { paymentCredential: unApxn_cred } = lucid.utils.getAddressDetails(unApxn_addr)
 
 const minting_script: MintingPolicy = {
   type: "PlutusV2",
   script: applyParamsToScript(
     prop_mint?.compiledCode,
-    [genesis_utxo],
+    [unApxn_cred?.hash],
   ),
 }; 
 
-const minting_address = lucid.utils.validatorToAddress(minting_script)
+const proposal_addr = lucid.utils.validatorToAddress(minting_script)
+const proposal_pid = lucid.utils.mintingPolicyToId(minting_script)
+const { paymentCredential: proposal_cred } = lucid.utils.getAddressDetails(proposal_addr)
 
-const policyId = lucid.utils.mintingPolicyToId(minting_script)
 
-const unArxh = policyId + fromText("unArxh")
+const unApxn_nft = unApxn_pid + fromText("unApxn")
 
-const [utxo] = await lucid.utxosAtWithUnit(minting_address, unArxh) 
+const [utxo] = await lucid.utxosAtWithUnit(unApxn_addr, unApxn_nft) 
 
-let unArxh_datum = Data.from(utxo.datum!);
+let unApxn_datum = Data.from(utxo.datum!);
  
-let count = unArxh_datum.fields[0];
+let count = unApxn_datum.fields[0];
 
-const unit = policyId + fromText("proposal_" + String(count))
-const res_unit = policyId + fromText("proposal_" + String(count) + "_R")
-const claim_unit = policyId + fromText("proposal_" + String(count) + "_Claim")
+const unit = proposal_pid+ fromText("proposal_" + String(count))
+const res_unit = proposal_pid + fromText("proposal_" + String(count) + "_R")
+const claim_unit = proposal_pid + fromText("proposal_" + String(count) + "_Claim")
 
 const proposal = prompt("proposal:");
 const amount = prompt("amount:")
@@ -87,17 +101,23 @@ const prop_datum = Data.to(new Constr(0, [
 
 const nu_datum = Data.to(new Constr(0, [
   count + 1n,
-  unArxh_datum.fields[1]   
+  unApxn_datum.fields[1],
+  unApxn_datum.fields[2],
 ]));
 
-const mint_redeemer = Data.to(new Constr(1, []));
+const mint_redeemer = Data.to(new Constr(0, []));
 const spend_redeemer = Data.to(new Constr(1, [new Constr(1, [])]));
 
+console.log(user_cred?.hash)
+console.log(unApxn_cred?.hash)
+console.log(proposal_cred?.hash)
+console.log(unApxn_pid)
+console.log(proposal_pid)
 console.log("minting redeemer:")
 console.log(Data.from(mint_redeemer))
-console.log("\nold unArxh datum:")
-console.log(unArxh_datum)
-console.log("\nnew unArxh datum:") 
+console.log("\nold unApxn datum:")
+console.log(unApxn_datum)
+console.log("\nnew unApxn datum:") 
 console.log(Data.from(nu_datum))
 console.log("\nproposal datum:") 
 console.log(Data.from(prop_datum))
@@ -108,11 +128,12 @@ const mint_tx = await lucid
   .newTx()
   .collectFrom([utxo], spend_redeemer)
   .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
-  .payToAddressWithData(minting_address, {inline: nu_datum}, {[unArxh]: 1n, lovelace: utxo.assets.lovelace})
-  .payToAddressWithData(minting_address, {inline: Data.to(fromText("Banka"))}, {lovelace:200_000_000n})
-  .payToAddressWithData(minting_address, { inline: prop_datum}, {[unit]: 1n,} )
+  .payToAddressWithData(unApxn_addr, {inline: nu_datum}, {[unApxn_nft]: 1n, lovelace: utxo.assets.lovelace})
+  .payToAddressWithData(proposal_addr, {inline: Data.to(fromText("Banka"))}, {lovelace:200_000_000n})
+  .payToAddressWithData(proposal_addr, { inline: prop_datum}, {[unit]: 1n,} )
   .payToAddress(address, {[res_unit]: 1n,})
   .payToAddress(address, {[claim_unit]: 1n,})
+  .attachSpendingValidator(unApxn_script)
   .attachMintingPolicy(minting_script)
   .complete({change: {address: address}})
 

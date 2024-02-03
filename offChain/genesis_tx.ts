@@ -31,9 +31,11 @@ const lucid = await Lucid.new(
 //const wallet = await lucid.selectWalletFromPrivateKey(await Deno.readTextFile("./stuff/key.sk"));
 const wallet = await lucid.selectWalletFromSeed(await Deno.readTextFile("./stuff/seed"));
 
-const { paymentCredential} = lucid.utils.getAddressDetails(
+const { paymentCredential: user_cred } = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
 );
+
+
 const address = await lucid.wallet.address();
 const [utxo] = await lucid.wallet.getUtxos();
 
@@ -71,18 +73,19 @@ const proposal_pid = lucid.utils.mintingPolicyToId(minting_script)
 const { paymentCredential: minting_cred } = lucid.utils.getAddressDetails(minting_address)
 
 const unApxn_nft = unApxn_pid + fromText("unApxn")
-console.log(minting_cred)
+
 const genesis_redeemer = Data.to(new Constr(0, []));
 const genesis_datum = Data.to(new Constr(0, [
   0n, 
-  proposal_pid,
-  proposal_pid
+  minting_cred?.hash,
+  user_cred?.hash 
 ]));
 
+console.log(minting_cred?.hash)
+console.log(user_cred?.hash)
 console.log(Data.from(genesis_redeemer))
 console.log(Data.from(genesis_datum))
 console.log(minting_script) 
-console.log(paymentCredential)
 
 const change = {
   change: {
