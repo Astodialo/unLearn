@@ -37,11 +37,11 @@ const { paymentCredential: user_cred } = lucid.utils.getAddressDetails(
 
 
 const address = await lucid.wallet.address();
-const [utxo] = await lucid.wallet.getUtxos();
+const utxos = await lucid.wallet.getUtxos();
 
 const genesis_utxo = new Constr(0, [
-  new Constr(0, [utxo.txHash]),
-  BigInt(utxo.outputIndex),
+  new Constr(0, [utxos[0].txHash]),
+  BigInt(utxos[0].outputIndex),
 ]);
 
 const prop_mint = blueprint.validators.find((v) => v.title === "prop_mint.prop_mint");
@@ -87,19 +87,13 @@ console.log(Data.from(genesis_redeemer))
 console.log(Data.from(genesis_datum))
 console.log(minting_script) 
 
-const change = {
-  change: {
-    address: minting_address,
-  },
-}
-
 const tx = await lucid
   .newTx()
-  .collectFrom([utxo])
+  .collectFrom([utxos[0]],)
   .mintAssets({ [unApxn_nft]: 1n }, genesis_redeemer,)
-  .payToAddressWithData(unApxn_addr, {inline: genesis_datum}, {[unApxn_nft]: 1n, lovelace: 10_000_000n, })
+  .payToAddressWithData(unApxn_addr, {inline: genesis_datum, scriptRef: unApxn_script}, {[unApxn_nft]: 1n, lovelace: 10_000_000n, })
   .attachMintingPolicy( unApxn_script,)
-  .complete({change: {address: address}})
+  .complete( {change: {address: address}})
 
 const signedTx = await tx.sign().complete();
 const txHash = await signedTx.submit();
@@ -108,8 +102,8 @@ const genesis = "{\n  \"validator\": \"" + minting_script.script + "\"," + "\n"
               + "  \"validatorHash\": \"" +  lucid.utils.validatorToScriptHash(minting_script) + "\"," + "\n"
               + "  \"validatorAddress\": \"" + minting_address + "\"," + "\n"
               + "  \"outRef\": { \n"
-              + "    \"txHash\": \"" + utxo.txHash + "\"," + "\n" 
-              + "    \"index\": " + utxo.outputIndex + "\n" 
+              + "    \"txHash\": \"" + utxos[0].txHash + "\"," + "\n" 
+              + "    \"index\": " + utxos[0].outputIndex + "\n" 
               + "  }\n"
               + "}"
 

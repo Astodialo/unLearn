@@ -134,17 +134,17 @@ validator(utxo_ref: OutputReference) {
         // Check that the state field, in the datum of the proposal datum is set to "INIT"
         state == "INIT"
         // Check that the count field, in the datum of unApxn NFT, has increased
-        && (count_after + 1 == count_b4)? 
+        && (count_after - 1 == count_b4)? 
         // Check that the minting_addr field, in the datum of unApxn NFT, is the same
         && (ma_after == ma_b4)?
         // Check that the results_addr field, in the datum of unApxn NFT, is the same
         && (ra_after == ra_b4)?
         // Check that the minted tokens have the correct names
-        && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
+        && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), ma_after))? 
         // Check that proposal_X is sent to the address stated in the unApxn token's datum as minting_addr.
         && (proposal_output.address.payment_credential == credential.ScriptCredential(ma_after))
         // Check that proposal_x_R is sent to the address stated in the unApxn token's datum as results_addr.
-        && (result_output.address.payment_credential == credential.ScriptCredential(ra_after))?     
+        && (result_output.address.payment_credential == credential.VerificationKeyCredential(ra_after))?
       }     
     }
   }

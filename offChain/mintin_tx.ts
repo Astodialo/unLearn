@@ -108,11 +108,6 @@ const nu_datum = Data.to(new Constr(0, [
 const mint_redeemer = Data.to(new Constr(0, []));
 const spend_redeemer = Data.to(new Constr(1, [new Constr(1, [])]));
 
-console.log(user_cred?.hash)
-console.log(unApxn_cred?.hash)
-console.log(proposal_cred?.hash)
-console.log(unApxn_pid)
-console.log(proposal_pid)
 console.log("minting redeemer:")
 console.log(Data.from(mint_redeemer))
 console.log("\nold unApxn datum:")
@@ -124,18 +119,30 @@ console.log(Data.from(prop_datum))
 console.log("\naddress:")
 console.log(address)
 
+
 const mint_tx = await lucid
   .newTx()
-  .collectFrom([utxo], spend_redeemer)
-  .mintAssets({ [unit]: 1n, [res_unit]: 1n, [claim_unit]: 1n,}, mint_redeemer)
-  .payToAddressWithData(unApxn_addr, {inline: nu_datum}, {[unApxn_nft]: 1n, lovelace: utxo.assets.lovelace})
-  .payToAddressWithData(proposal_addr, {inline: Data.to(fromText("Banka"))}, {lovelace:200_000_000n})
-  .payToAddressWithData(proposal_addr, { inline: prop_datum}, {[unit]: 1n,} )
-  .payToAddress(address, {[res_unit]: 1n,})
-  .payToAddress(address, {[claim_unit]: 1n,})
-  .attachSpendingValidator(unApxn_script)
+  .readFrom([utxo])
   .attachMintingPolicy(minting_script)
-  .complete({change: {address: address}})
+  .collectFrom([utxo], spend_redeemer)
+  .mintAssets({ [unit]: 1n,
+                [res_unit]: 1n, 
+                [claim_unit]: 1n,},
+              mint_redeemer)
+  .payToContract(unApxn_addr, 
+                 {inline: nu_datum,
+                  scriptRef: unApxn_script},
+                 {[unApxn_nft]: 1n, lovelace: utxo.assets.lovelace})
+  .payToContract(proposal_addr,
+                 {inline: Data.to(fromText("Banka"))},
+                 {lovelace:200_000_000n})
+  .payToContract(proposal_addr, 
+                 { inline: prop_datum}, 
+                 {[unit]: 1n,} )
+  .payToAddress(address, 
+                {[res_unit]: 1n, 
+                 [claim_unit]: 1n,})
+  .complete()
 
 const mint_signedTx = await mint_tx.sign().complete();
 

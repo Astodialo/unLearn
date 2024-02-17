@@ -93,7 +93,7 @@ validator(unLearn_policy: ScriptHash) {
         // Check that the state field, in the datum of proposal_x datum is set to "INIT"
         state == "INIT"
         // Check that the count field, in the datum of unApxn NFT, has increased
-        && (count_after + 1 == count_b4)? 
+        && (count_after - 1 == count_b4)? 
         // Check that the minting_addr field, in the datum of unApxn NFT, is the same
         && (ma_after == ma_b4)?
         // Check that the results_addr field, in the datum of unApxn NFT, is the same
@@ -101,9 +101,9 @@ validator(unLearn_policy: ScriptHash) {
         // Check that the minted tokens have the correct names
         && (unlearn.named_correct(value.flatten(mint), bytearray.concat("proposal_", bytearray.from_string(string.from_int(count_b4))), own_policy))? 
         // Check that proposal_X is sent to the address stated in the unApxn token's datum as minting_addr.
-        && (proposal_output.address == credential.from_verification_key(ma_b4))?
+        && (proposal_output.address.payment_credential == credential.ScriptCredential(ma_after))
         // Check that proposal_x_R is sent to the address stated in the unApxn token's datum as results_addr.
-        && (result_output.address == credential.from_verification_key(ra_b4))?     
+        && (result_output.address.payment_credential == credential.VerificationKeyCredential(ra_after))?
       }
       Update -> {
         // Check that there is only one burned asset with the policy of the script 
