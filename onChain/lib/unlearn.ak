@@ -43,7 +43,7 @@ pub fn named_correct(values: List<(value.PolicyId, value.AssetName, Int)>, name:
   list.length(values) == 3 && list.all(values, fn(value) -> Bool {
     let (pid, asset, amt) = value
 
-    pid == own_policy && ((asset == bytearray.concat(name, "_R")) || (asset == bytearray.concat(name, "_Claim")) || (asset == name) ) && amt == 1 
+    pid == own_policy && ( (asset == bytearray.concat(name, "_R")) || (asset == bytearray.concat(name, "_Claim")) || (asset == name) ) && amt == 1 
   })
 }
         

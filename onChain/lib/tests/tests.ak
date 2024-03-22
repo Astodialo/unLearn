@@ -220,4 +220,3 @@ test lvlc_from_sender_utxo(){
 
   val_from_outputs == 100
 }
-

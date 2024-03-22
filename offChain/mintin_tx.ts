@@ -44,6 +44,7 @@ const { paymentCredential: user_cred} = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
 );
 const address = await lucid.wallet.address();
+const utxos = await lucid.utxosAt(address);
 
 const genesis_utxo = new Constr(0, [
   new Constr(0, [outRef.txHash]),
@@ -110,6 +111,7 @@ const spend_redeemer = Data.to(new Constr(1, [new Constr(1, [])]));
 
 console.log("minting redeemer:")
 console.log(Data.from(mint_redeemer))
+console.log(utxo)
 console.log("\nold unApxn datum:")
 console.log(unApxn_datum)
 console.log("\nnew unApxn datum:") 
@@ -125,6 +127,7 @@ const mint_tx = await lucid
   .readFrom([utxo])
   .attachMintingPolicy(minting_script)
   .collectFrom([utxo], spend_redeemer)
+  .collectFrom([utxos[0]])
   .mintAssets({ [unit]: 1n,
                 [res_unit]: 1n, 
                 [claim_unit]: 1n,},
@@ -133,9 +136,9 @@ const mint_tx = await lucid
                  {inline: nu_datum,
                   scriptRef: unApxn_script},
                  {[unApxn_nft]: 1n, lovelace: utxo.assets.lovelace})
-  .payToContract(proposal_addr,
-                 {inline: Data.to(fromText("Banka"))},
-                 {lovelace:200_000_000n})
+  //.payToContract(proposal_addr,
+  //               {inline: Data.to(fromText("Banka"))},
+  //               {lovelace:200_000_000n})
   .payToContract(proposal_addr, 
                  { inline: prop_datum}, 
                  {[unit]: 1n,} )
