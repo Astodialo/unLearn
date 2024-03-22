@@ -127,7 +127,6 @@ const mint_tx = await lucid
   .readFrom([utxo])
   .attachMintingPolicy(minting_script)
   .collectFrom([utxo], spend_redeemer)
-  .collectFrom([utxos[0]])
   .mintAssets({ [unit]: 1n,
                 [res_unit]: 1n, 
                 [claim_unit]: 1n,},
@@ -136,9 +135,9 @@ const mint_tx = await lucid
                  {inline: nu_datum,
                   scriptRef: unApxn_script},
                  {[unApxn_nft]: 1n, lovelace: utxo.assets.lovelace})
-  //.payToContract(proposal_addr,
-  //               {inline: Data.to(fromText("Banka"))},
-  //               {lovelace:200_000_000n})
+  .payToContract(proposal_addr,
+                 {inline: Data.to(fromText("Banka"))},
+                 {lovelace:200_000_000n})
   .payToContract(proposal_addr, 
                  { inline: prop_datum}, 
                  {[unit]: 1n,} )
