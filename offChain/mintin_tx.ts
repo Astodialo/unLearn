@@ -1,15 +1,15 @@
-import { 
+import {
   Lucid,
   Kupmios,
   MintingPolicy,
-  SpendingValidator, 
-  fromText, 
+  SpendingValidator,
+  fromText,
   applyDoubleCborEncoding,
-  Data, 
-  TxHash, 
-  sign, 
-  Constr, 
-  fromHex, 
+  Data,
+  TxHash,
+  sign,
+  Constr,
+  fromHex,
   toHex,
   toLabel,
   OutRef,
@@ -36,11 +36,11 @@ type Genesis = {
 
 const genesisFile = Deno.readTextFileSync(`./stuff/genesis.json`);
 
-const {validator, validatorHash, validatorAddress, outRef}: Genesis = JSON.parse(genesisFile); 
+const { validator, validatorHash, validatorAddress, outRef }: Genesis = JSON.parse(genesisFile);
 
 const wallet = await lucid.selectWalletFromSeed(await Deno.readTextFile("./stuff/seed"));
 
-const { paymentCredential: user_cred} = lucid.utils.getAddressDetails(
+const { paymentCredential: user_cred } = lucid.utils.getAddressDetails(
   await lucid.wallet.address()
 );
 const address = await lucid.wallet.address();
@@ -60,7 +60,7 @@ const unApxn_script: MintingPolicy = {
     unApxn?.compiledCode,
     [genesis_utxo],
   ),
-}; 
+};
 
 const unApxn_addr = lucid.utils.validatorToAddress(unApxn_script)
 const unApxn_pid = lucid.utils.mintingPolicyToId(unApxn_script)
@@ -72,7 +72,7 @@ const minting_script: MintingPolicy = {
     prop_mint?.compiledCode,
     [unApxn_cred?.hash],
   ),
-}; 
+};
 
 const proposal_addr = lucid.utils.validatorToAddress(minting_script)
 const proposal_pid = lucid.utils.mintingPolicyToId(minting_script)
@@ -81,13 +81,13 @@ const { paymentCredential: proposal_cred } = lucid.utils.getAddressDetails(propo
 
 const unApxn_nft = unApxn_pid + fromText("unApxn")
 
-const [utxo] = await lucid.utxosAtWithUnit(unApxn_addr, unApxn_nft) 
+const [utxo] = await lucid.utxosAtWithUnit(unApxn_addr, unApxn_nft)
 
 let unApxn_datum = Data.from(utxo.datum!);
- 
+
 let count = unApxn_datum.fields[0];
 
-const unit = proposal_pid+ fromText("proposal_" + String(count))
+const unit = proposal_pid + fromText("proposal_" + String(count))
 const res_unit = proposal_pid + fromText("proposal_" + String(count) + "_R")
 const claim_unit = proposal_pid + fromText("proposal_" + String(count) + "_Claim")
 
@@ -98,7 +98,7 @@ const prop_datum = Data.to(new Constr(0, [
   fromText(proposal),
   fromText("INIT"),
   BigInt(amount) * 1_000_000n
-])); 
+]));
 
 const nu_datum = Data.to(new Constr(0, [
   count + 1n,
@@ -114,12 +114,10 @@ console.log(Data.from(mint_redeemer))
 console.log(utxo)
 console.log("\nold unApxn datum:")
 console.log(unApxn_datum)
-console.log("\nnew unApxn datum:") 
+console.log("\nnew unApxn datum:")
 console.log(Data.from(nu_datum))
-console.log("\nproposal datum:") 
+console.log("\nproposal datum:")
 console.log(Data.from(prop_datum))
-console.log("\naddress:")
-console.log(address)
 
 
 const mint_tx = await lucid
@@ -127,27 +125,34 @@ const mint_tx = await lucid
   .readFrom([utxo])
   .attachMintingPolicy(minting_script)
   .collectFrom([utxo], spend_redeemer)
-  .mintAssets({ [unit]: 1n,
-                [res_unit]: 1n, 
-                [claim_unit]: 1n,},
-              mint_redeemer)
-  .payToContract(unApxn_addr, 
-                 {inline: nu_datum,
-                  scriptRef: unApxn_script},
-                 {[unApxn_nft]: 1n, lovelace: utxo.assets.lovelace})
+  .mintAssets({
+    [unit]: 1n,
+    [res_unit]: 1n,
+    [claim_unit]: 1n,
+  },
+    mint_redeemer)
+  .payToContract(unApxn_addr,
+    {
+      inline: nu_datum,
+      scriptRef: unApxn_script
+    },
+    { [unApxn_nft]: 1n, lovelace: utxo.assets.lovelace })
   .payToContract(proposal_addr,
-                 {inline: Data.to(fromText("Banka"))},
-                 {lovelace:200_000_000n})
-  .payToContract(proposal_addr, 
-                 { inline: prop_datum}, 
-                 {[unit]: 1n,} )
-  .payToAddress(address, 
-                {[res_unit]: 1n, 
-                 [claim_unit]: 1n,})
+    { inline: Data.to(fromText("Banka")) },
+    { lovelace: 200_000_000n })
+  .payToContract(proposal_addr,
+    { inline: prop_datum },
+    { [unit]: 1n, })
+  .payToAddress(address,
+    {
+      [res_unit]: 1n,
+      [claim_unit]: 1n,
+    })
   .complete()
 
 const mint_signedTx = await mint_tx.sign().complete();
 
 const mint_txHash = await mint_signedTx.submit();
+console.log("\nTx Hash:")
 console.log(mint_txHash)
 
