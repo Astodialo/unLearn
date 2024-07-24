@@ -1,15 +1,15 @@
-import { 
+import {
   Lucid,
   Kupmios,
   MintingPolicy,
-  SpendingValidator, 
-  fromText, 
+  SpendingValidator,
+  fromText,
   applyDoubleCborEncoding,
-  Data, 
-  TxHash, 
-  sign, 
-  Constr, 
-  fromHex, 
+  Data,
+  TxHash,
+  sign,
+  Constr,
+  fromHex,
   toHex,
   toLabel,
   OutRef,
@@ -36,7 +36,7 @@ type Genesis = {
 
 const genesisFile = Deno.readTextFileSync(`./stuff/genesis.json`);
 
-const {validator, validatorHash, validatorAddress, outRef}: Genesis = JSON.parse(genesisFile); 
+const { validator, validatorHash, validatorAddress, outRef }: Genesis = JSON.parse(genesisFile);
 
 const wallet = await lucid.selectWalletFromSeed(await Deno.readTextFile("./stuff/seed"));
 
@@ -47,16 +47,34 @@ const genesis_utxo = new Constr(0, [
   BigInt(outRef.index),
 ]);
 
-const prop_mint = blueprint.validators.find((v) => v.title === "proposal_mint.prop_mint")
+const unApxn = blueprint.validators.find((v) => v.title === "unapxn.unApxn");
+const prop_mint = blueprint.validators.find((v) => v.title === "prop_mint.prop_mint");
+
+const unApxn_script: MintingPolicy = {
+  type: "PlutusV2",
+  script: applyParamsToScript(
+    unApxn?.compiledCode,
+    [genesis_utxo],
+  ),
+};
+
+const unApxn_addr = lucid.utils.validatorToAddress(unApxn_script)
+const unApxn_pid = lucid.utils.mintingPolicyToId(unApxn_script)
+const { paymentCredential: unApxn_cred } = lucid.utils.getAddressDetails(unApxn_addr)
 
 const minting_script: MintingPolicy = {
   type: "PlutusV2",
   script: applyParamsToScript(
     prop_mint?.compiledCode,
-    [genesis_utxo]),
-}; 
+    [unApxn_cred?.hash],
+  ),
+};
 
-const minting_address = lucid.utils.validatorToAddress(minting_script) 
+const proposal_addr = lucid.utils.validatorToAddress(minting_script)
+const proposal_pid = lucid.utils.mintingPolicyToId(minting_script)
+const { paymentCredential: proposal_cred } = lucid.utils.getAddressDetails(proposal_addr)
+
+const minting_address = lucid.utils.validatorToAddress(minting_script)
 //const updater_address = lucid.utils.validatorToAddress(updater_script) 
 
 const policyId = lucid.utils.mintingPolicyToId(minting_script)
@@ -66,14 +84,14 @@ const prop_id = prompt("proposal number:");
 const unit = policyId + fromText("proposal_") + fromText(prop_id)
 const res_unit = unit + fromText("_R")
 
-const [utxo] = await lucid.utxosAtWithUnit(minting_address, unit) 
+const [utxo] = await lucid.utxosAtWithUnit(minting_address, unit)
 const [res_utxo] = await lucid.utxosAtWithUnit(address, res_unit)
 const addr_utxos = await lucid.utxosAt(address)
 
 const datum = Data.from(utxo.datum!)
 
-const mint_redeemer = Data.to(new Constr(2, []));
-const spend_redeemer = Data.to(new Constr(1, [new Constr(2, [])]));
+const mint_redeemer = Data.to(new Constr(1, []));
+const spend_redeemer = Data.to(new Constr(1, [new Constr(1, [])]));
 
 const [proposal, _state, amount] = datum.fields
 
@@ -83,14 +101,14 @@ let state = ""
 if (vote == "y") {
   state = fromText("COMPLETE")
 } else {
-  state = fromText("CANCELED")
+  state = fromText("CANCELLED")
 }
 
 const nu_datum = Data.to(new Constr(0, [
- proposal,
- state,
- amount
-])); 
+  proposal,
+  state,
+  amount
+]));
 
 console.log("\nold proposal datum:")
 console.log(datum)
@@ -108,12 +126,11 @@ const updater_tx = await lucid
   .newTx()
   .collectFrom([utxo], spend_redeemer)
   .collectFrom([res_utxo],)
-  .collectFrom(addr_utxos)
-  .mintAssets({[res_unit]: -1n,}, mint_redeemer)
-  .payToAddressWithData(minting_address, {inline: nu_datum}, {[unit]: 1n,})
+  .mintAssets({ [res_unit]: -1n, }, mint_redeemer)
+  .payToAddressWithData(minting_address, { inline: nu_datum }, { [unit]: 1n, })
   .attachMintingPolicy(minting_script)
-  .complete({change: {address: address}, coinSelection: false})
-  
+  .complete()
+
 const updater_signedTx = await updater_tx.sign().complete();
 
 const mint_txHash = await updater_signedTx.submit();

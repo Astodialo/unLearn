@@ -1,10 +1,12 @@
 use aiken/dict
 use aiken/bytearray
 use aiken/list
-use aiken/transaction.{Input, Output, OutputReference}
+use aiken/transaction.{Input, Output, OutputReference, find_input}
 use aiken/transaction/value
+use aiken/transaction/credential
 
-pub const master_token_name: ByteArray = "unArxh"  
+
+pub const master_token_name: ByteArray = "unApxn"  
 
 pub fn valEq(ending: ByteArray, ass: (value.PolicyId, value.AssetName, Int), val: List<(value.PolicyId, value.AssetName, Int)>) -> Bool {
   list.any(val, fn(ref_ass: (value.PolicyId, value.AssetName, Int)) { 
@@ -41,7 +43,7 @@ pub fn named_correct(values: List<(value.PolicyId, value.AssetName, Int)>, name:
   list.length(values) == 3 && list.all(values, fn(value) -> Bool {
     let (pid, asset, amt) = value
 
-    pid == own_policy && ((asset == bytearray.concat(name, "_R")) || (asset == bytearray.concat(name, "_Claim")) || (asset == name) ) && amt == 1 
+    pid == own_policy && ( (asset == bytearray.concat(name, "_R")) || (asset == bytearray.concat(name, "_Claim")) || (asset == name) ) && amt == 1 
   })
 }
         
@@ -69,3 +71,12 @@ pub fn value_has_only_master_and_lovelace(val: value.Value, own_policy: value.Po
     policy1 == own_policy && quantity == 1 && token_name == master_token_name
   }
 }
+
+pub fn policy_from_reference(own_reference: OutputReference, inputs: List<Input> ) -> value.PolicyId {
+  expect Some(own_input) = inputs |> find_input(own_reference)
+  let Input {output: Output { address: credential.Address { payment_credential, .. }, .. }, ..} = own_input
+  expect credential.ScriptCredential(own_policy) = payment_credential 
+
+  own_policy
+} 
+

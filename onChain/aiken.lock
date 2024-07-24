@@ -22,3 +22,6 @@ name = "logicalmechanism/assist"
 version = "main"
 requirements = []
 source = "github"
+
+[etags]
+"logicalmechanism/assist@main" = [{ secs_since_epoch = 1721815971, nanos_since_epoch = 895944819 }, "c39fe7e923358725c62ab3c8803cd37ed55fa171d2ce1527d328a2b54632b87a"]
