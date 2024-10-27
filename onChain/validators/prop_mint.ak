@@ -36,6 +36,7 @@ type Metadata {
   amount: Int,
 }
 
+
 validator(unLearn_policy: ScriptHash) {
   fn prop_mint(redeemer: Action, ctx: ScriptContext) -> Bool {
     expect ScriptContext { transaction: txInfo, purpose: Mint(own_policy) } =

@@ -1,0 +1,6 @@
+{
+  "main": "../dist/cjs/WorkerError.js",
+  "module": "../dist/esm/WorkerError.js",
+  "types": "../dist/dts/WorkerError.d.ts",
+  "sideEffects": []
+}

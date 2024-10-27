@@ -1,0 +1,6 @@
+{
+  "main": "../dist/cjs/SchemaAST.js",
+  "module": "../dist/esm/SchemaAST.js",
+  "types": "../dist/dts/SchemaAST.d.ts",
+  "sideEffects": []
+}

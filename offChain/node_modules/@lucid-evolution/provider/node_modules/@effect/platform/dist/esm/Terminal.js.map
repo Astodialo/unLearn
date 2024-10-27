@@ -1,0 +1,1 @@
+{"version":3,"file":"Terminal.js","names":["TaggedError","InternalTerminal","QuitException","Terminal","tag"],"sources":["../../src/Terminal.ts"],"sourcesContent":[null],"mappings":"AAIA,SAASA,WAAW,QAAQ,aAAa;AAIzC,OAAO,KAAKC,gBAAgB,MAAM,wBAAwB;AAkE1D;;;;;;;AAOA,OAAM,MAAOC,aAAc,sBAAQF,WAAW,CAAC,eAAe,CAAK;AAEnE;;;;AAIA,OAAO,MAAMG,QAAQ,GAA4BF,gBAAgB,CAACG,GAAG","ignoreList":[]}

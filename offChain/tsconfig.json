@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "rootDir": "./src",
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "Node",
+    "declaration": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

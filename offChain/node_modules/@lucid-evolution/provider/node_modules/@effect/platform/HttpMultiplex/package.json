@@ -1,0 +1,6 @@
+{
+  "main": "../dist/cjs/HttpMultiplex.js",
+  "module": "../dist/esm/HttpMultiplex.js",
+  "types": "../dist/dts/HttpMultiplex.d.ts",
+  "sideEffects": []
+}

@@ -1,5 +1,7 @@
 {
+  "type":"module",
   "dependencies": {
-    "typescript": "^5.5.2"
+    "@lucid-evolution/lucid": "^0.3.52",
+    "@types/node": "^22.8.1"
   }
 }

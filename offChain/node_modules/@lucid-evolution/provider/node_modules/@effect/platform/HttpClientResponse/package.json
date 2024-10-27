@@ -1,0 +1,6 @@
+{
+  "main": "../dist/cjs/HttpClientResponse.js",
+  "module": "../dist/esm/HttpClientResponse.js",
+  "types": "../dist/dts/HttpClientResponse.d.ts",
+  "sideEffects": []
+}

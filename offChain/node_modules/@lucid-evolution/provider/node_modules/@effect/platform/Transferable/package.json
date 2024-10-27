@@ -1,0 +1,6 @@
+{
+  "main": "../dist/cjs/Transferable.js",
+  "module": "../dist/esm/Transferable.js",
+  "types": "../dist/dts/Transferable.d.ts",
+  "sideEffects": []
+}

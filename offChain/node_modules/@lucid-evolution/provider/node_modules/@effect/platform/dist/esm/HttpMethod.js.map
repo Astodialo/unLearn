@@ -1,0 +1,1 @@
+{"version":3,"file":"HttpMethod.js","names":["hasBody","method"],"sources":["../../src/HttpMethod.ts"],"sourcesContent":[null],"mappings":"AAaA;;;AAGA,OAAO,MAAMA,OAAO,GAAIC,MAAkB,IAAcA,MAAM,KAAK,KAAK,IAAIA,MAAM,KAAK,MAAM","ignoreList":[]}

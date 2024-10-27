@@ -1,0 +1,6 @@
+{
+  "main": "../dist/cjs/UrlParams.js",
+  "module": "../dist/esm/UrlParams.js",
+  "types": "../dist/dts/UrlParams.d.ts",
+  "sideEffects": []
+}
