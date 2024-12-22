@@ -12,10 +12,6 @@ This confederation acts as a decentralized layer of governance, ensuring transpa
 
 ![Image](https://raw.githubusercontent.com/astodialo/unlearn/main/assets/img/unLearn%20members%20transition.png)
 
-In essence, the unLearn framework represents a new pradigm in governance, one that embraces decentralization, adaptability and collective action. It fosters a sence of community and collective responsibility. By combining principles of libertarian socialism with the technological capabilities of blockchain, unLearn paves the way for a more equitable, transparent and resilient future.
-
-
-
 The base of this organization system is the proposal system. The system is designed with composability and interoperability in mind, to facilitate diverse consensus reaching mechanisms, or proposal minting ones. This is facilitated by the unApxn NFT, which is minted in the genesis tx of each unLearn instance. It is locked in the Treasury and in its datum it contains the addresses of the components of the treasury and other information about the organization. The validator ensures that unApxn can be updated only after a proposal has been approved, meaning consensus has been reached.
 
 As stated anyone can make a proposal, through the proposal creation tx. The proposal and amount need to be inputted by the proposer. In this transaction 3 NFTs will be minted and aswell the state of unApxn will be updated, since it also acts as a counter for the proposals. The NFTs minted are:
