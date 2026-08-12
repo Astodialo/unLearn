@@ -1,3 +1,5 @@
+
+
 unLearn: modular governance framework
 
 At its core, unLearn embraces the ideas of decentralization, autonomy and self-management, empowering individuals and organizations to collaboratively shape their own collective future. Central to the unLearn framework is the concept of fluidity and adaptability. Unlike traditional top-down governance models, unLearn starts with a foundation of fluidity, allowing for organic growth and evolution over time.
@@ -6,7 +8,7 @@ An organization can begin by utilizing a multisig, or any other consensus mechan
 
 ![Image](https://raw.githubusercontent.com/astodialo/unlearn/main/assets/img/multisig%20unLearn.png)
 
-As the ecosystem matures, proposals for gevernance enhancements can be introduced and voted upon by the community. Through this process, a more sophisticated governance structure can emerge, potentially involving a confederation of multisigs and other voting mechanisms.
+As the ecosystem matures, proposals for governance enhancements can be introduced and voted upon by the community. Through this process, a more sophisticated governance structure can emerge, potentially involving a confederation of multisigs and other voting mechanisms.
 
 This confederation acts as a decentralized layer of governance, ensuring transparency and efficiency in decision-making. But the unLearn framework doesn't stop there. It also enables collaboration between different organization through the confederation of their blockchain addresses. By pooling resources and aligning their efforts, organizations can work together towards common goals in a decentralized manner.
 
@@ -19,4 +21,3 @@ As stated anyone can make a proposal, through the proposal creation tx. The prop
 ```proposal_x```: It is locked in the proposal minting validator and is the state of the proposal.
 ```proposal_x_R```: It is locked in the Consensus validator and is used to update the results, when consensus is reached, in the state of the proposal(proposal_x).
 ```proposal_x_Claim```: It is received by the proposer and it acts as a voucher with which they can claim the amount after the proposal state is set to complete, meaning consensus on approving it has been reached. If consensus is not reached then it is basically useless.
-
